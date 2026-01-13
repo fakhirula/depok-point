@@ -55,37 +55,37 @@ export function DashboardStats() {
     .slice(0, 5);
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       {/* Total Lokasi */}
-      <div className="stat rounded-box bg-base-100 shadow">
-        <div className="stat-title">Total Lokasi</div>
-        <div className="stat-value text-primary">{stats.totalPlaces}</div>
-        <div className="stat-desc">Semua kategori</div>
+      <div className="stat rounded-box bg-base-100 shadow hover-lift transition-smooth">
+        <div className="stat-title text-xs sm:text-sm">Total Lokasi</div>
+        <div className="stat-value text-2xl sm:text-3xl lg:text-4xl text-primary">{stats.totalPlaces}</div>
+        <div className="stat-desc text-xs">Semua kategori</div>
       </div>
 
       {/* Total Kategori */}
-      <div className="stat rounded-box bg-base-100 shadow">
-        <div className="stat-title">Kategori</div>
-        <div className="stat-value text-success">{stats.totalCategories}</div>
-        <div className="stat-desc">Jenis layanan</div>
+      <div className="stat rounded-box bg-base-100 shadow hover-lift transition-smooth">
+        <div className="stat-title text-xs sm:text-sm">Kategori</div>
+        <div className="stat-value text-2xl sm:text-3xl lg:text-4xl text-success">{stats.totalCategories}</div>
+        <div className="stat-desc text-xs">Jenis layanan</div>
       </div>
 
       {/* Rata-rata per Kategori */}
-      <div className="stat rounded-box bg-base-100 shadow">
-        <div className="stat-title">Rata-rata per Kategori</div>
-        <div className="stat-value text-warning">
+      <div className="stat rounded-box bg-base-100 shadow hover-lift transition-smooth">
+        <div className="stat-title text-xs sm:text-sm">Rata-rata per Kategori</div>
+        <div className="stat-value text-2xl sm:text-3xl lg:text-4xl text-warning">
           {stats.totalCategories > 0 ? (stats.totalPlaces / stats.totalCategories).toFixed(1) : 0}
         </div>
-        <div className="stat-desc">Lokasi/kategori</div>
+        <div className="stat-desc text-xs">Lokasi/kategori</div>
       </div>
 
       {/* Last Updated */}
-      <div className="stat rounded-box bg-base-100 shadow">
-        <div className="stat-title">Pembaruan Terakhir</div>
-        <div className="stat-value text-info text-lg">
+      <div className="stat rounded-box bg-base-100 shadow hover-lift transition-smooth">
+        <div className="stat-title text-xs sm:text-sm">Pembaruan Terakhir</div>
+        <div className="stat-value text-lg sm:text-xl lg:text-2xl text-info">
           {stats.lastUpdated.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
         </div>
-        <div className="stat-desc">
+        <div className="stat-desc text-xs">
           {stats.lastUpdated.toLocaleDateString("id-ID", { month: "short", day: "numeric" })}
         </div>
       </div>
@@ -134,28 +134,28 @@ export function CategoryBreakdown() {
   }, []);
 
   return (
-    <div className="card bg-base-100 shadow">
-      <div className="card-body gap-4">
-        <h2 className="card-title">📊 Distribusi Lokasi per Kategori</h2>
+    <div className="card bg-base-100 shadow hover-lift transition-smooth">
+      <div className="card-body gap-4 p-4 sm:p-6">
+        <h2 className="card-title text-base sm:text-lg">📊 Distribusi Lokasi per Kategori</h2>
 
         {loading ? (
           <div className="flex justify-center py-8">
-            <span className="loading loading-spinner" />
+            <span className="loading loading-spinner loading-sm sm:loading-md" />
           </div>
         ) : categories.length === 0 ? (
-          <div className="text-center py-8 text-base-content/60">
+          <div className="text-center py-8 text-sm text-base-content/60">
             Tidak ada data lokasi
           </div>
         ) : (
-          <div className="space-y-3">
-            {categories.map((cat) => (
-              <div key={cat.name}>
-                <div className="flex justify-between items-center text-sm mb-1">
-                  <span className="font-semibold">{cat.name}</span>
-                  <span className="badge badge-primary">{cat.count}</span>
+          <div className="space-y-2 sm:space-y-3">
+            {categories.map((cat, index) => (
+              <div key={cat.name} className="animate-fadeIn" style={{ animationDelay: `${index * 0.05}s` }}>
+                <div className="flex justify-between items-center text-xs sm:text-sm mb-1">
+                  <span className="font-semibold truncate max-w-[60%]">{cat.name}</span>
+                  <span className="badge badge-primary badge-sm">{cat.count}</span>
                 </div>
                 <progress
-                  className="progress progress-primary w-full"
+                  className="progress progress-primary w-full h-2 transition-all duration-300"
                   value={cat.percentage}
                   max="100"
                 />

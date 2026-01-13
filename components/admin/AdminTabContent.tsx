@@ -202,31 +202,31 @@ export default function AdminTabContent() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {error && (
-        <div className="alert alert-error">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+        <div className="alert alert-error text-sm sm:text-base">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l-2-2m0 0l-2-2m2 2l2-2m-2 2l-2 2m8-8a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span>{error}</span>
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-3">
         {/* Map Section */}
-        <div className="lg:col-span-2">
-          <div className="card bg-base-100 shadow-lg">
-            <div className="card-body">
-              <h2 className="card-title flex items-center gap-2">
-                <span className="text-2xl">🗺️</span>
-                <span>Klik pada Peta untuk Mengatur Koordinat</span>
+        <div className="lg:col-span-2 order-2 lg:order-1">
+          <div className="card bg-base-100 shadow-lg hover-lift transition-smooth">
+            <div className="card-body p-4 sm:p-6">
+              <h2 className="card-title flex items-center gap-2 text-base sm:text-lg">
+                <span className="text-xl sm:text-2xl">🗺️</span>
+                <span className="text-sm sm:text-base">Klik pada Peta untuk Mengatur Koordinat</span>
               </h2>
-              <p className="text-sm text-base-content/70 mb-4">
+              <p className="text-xs sm:text-sm text-base-content/70 mb-4">
                 Klik lokasi pada peta untuk mengisi koordinat latitude dan longitude secara otomatis
               </p>
               {loading ? (
-                <div className="flex justify-center py-20">
-                  <span className="loading loading-spinner loading-lg" />
+                <div className="flex justify-center py-12 sm:py-20">
+                  <span className="loading loading-spinner loading-md sm:loading-lg" />
                 </div>
               ) : (
                 <AdminMapView
@@ -240,21 +240,21 @@ export default function AdminTabContent() {
         </div>
 
         {/* Form Section */}
-        <div className="lg:col-span-1">
-          <div className="card bg-base-100 shadow-lg sticky top-24">
-            <div className="card-body">
-              <h2 className="card-title flex items-center gap-2 text-xl">
+        <div className="lg:col-span-1 order-1 lg:order-2">
+          <div className="card bg-base-100 shadow-lg lg:sticky lg:top-24 hover-lift transition-smooth">
+            <div className="card-body p-4 sm:p-6">
+              <h2 className="card-title flex items-center gap-2 text-lg sm:text-xl">
                 <span>➕</span>
                 <span>Lokasi Baru</span>
               </h2>
 
-              <form className="space-y-6" onSubmit={handleSubmit}>
-                <div className="grid gap-4 md:grid-cols-2">
+              <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold">Nama Lokasi *</label>
+                    <label className="text-xs sm:text-sm font-semibold">Nama Lokasi *</label>
                     <input
                       type="text"
-                      className="input input-bordered w-full"
+                      className="input input-bordered input-sm sm:input-md w-full transition-smooth focus:scale-[1.02]"
                       placeholder="Contoh: RSUD Depok"
                       value={form.name}
                       onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
@@ -263,9 +263,9 @@ export default function AdminTabContent() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold">Kategori *</label>
+                    <label className="text-xs sm:text-sm font-semibold">Kategori *</label>
                     <select
-                      className="select select-bordered w-full"
+                      className="select select-bordered select-sm sm:select-md w-full transition-smooth focus:scale-[1.02]"
                       value={form.category}
                       onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
                       disabled={categoriesLoading}
@@ -286,10 +286,10 @@ export default function AdminTabContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Telepon</label>
+                  <label className="text-xs sm:text-sm font-semibold">Telepon</label>
                   <input
                     type="text"
-                    className="input input-bordered w-full"
+                    className="input input-bordered input-sm sm:input-md w-full transition-smooth focus:scale-[1.02]"
                     placeholder="0857xxxx / +62 ..."
                     value={form.phone}
                     onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
@@ -297,9 +297,9 @@ export default function AdminTabContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Alamat</label>
+                  <label className="text-xs sm:text-sm font-semibold">Alamat</label>
                   <textarea
-                    className="textarea textarea-bordered h-24 w-full"
+                    className="textarea textarea-bordered textarea-sm sm:textarea-md h-20 sm:h-24 w-full transition-smooth focus:scale-[1.02]"
                     placeholder="Alamat lengkap lokasi..."
                     value={form.address}
                     onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
@@ -308,8 +308,8 @@ export default function AdminTabContent() {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-semibold">Koordinat *</label>
-                    <span className="text-xs badge badge-outline">
+                    <label className="text-xs sm:text-sm font-semibold">Koordinat *</label>
+                    <span className="text-xs badge badge-outline badge-sm">
                       {selectedLocation ? "✓ Set" : "⚠ Belum"}
                     </span>
                   </div>
@@ -341,7 +341,7 @@ export default function AdminTabContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Foto (Opsional)</label>
+                  <label className="text-xs sm:text-sm font-semibold">Foto (Opsional)</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -349,12 +349,12 @@ export default function AdminTabContent() {
                     onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
                   />
                   {previewUrl && (
-                    <div className="mt-2 relative">
+                    <div className="mt-2 relative animate-fadeIn">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={previewUrl} alt="Preview" className="h-24 w-full object-cover rounded-lg" />
+                      <img src={previewUrl} alt="Preview" className="h-20 sm:h-24 w-full object-cover rounded-lg" />
                       <button
                         type="button"
-                        className="absolute top-1 right-1 btn btn-xs btn-circle btn-ghost"
+                        className="absolute top-1 right-1 btn btn-xs btn-circle btn-ghost hover-scale"
                         onClick={() => handleFileChange(null)}
                       >
                         ✕
@@ -366,7 +366,7 @@ export default function AdminTabContent() {
                 <div className="space-y-2">
                   <button
                     type="submit"
-                    className="btn btn-primary btn-block"
+                    className="btn btn-primary btn-block btn-sm sm:btn-md transition-all duration-300 hover:scale-105"
                     disabled={submitting || !selectedLocation}
                   >
                     {submitting ? (
@@ -383,13 +383,13 @@ export default function AdminTabContent() {
                   </button>
 
                   {!selectedLocation && (
-                    <div className="alert alert-warning text-sm py-2">
+                    <div className="alert alert-warning text-xs sm:text-sm py-2">
                       <span>⚠️ Klik peta terlebih dahulu untuk mengatur koordinat</span>
                     </div>
                   )}
 
                   {selectedLocation && (
-                    <button className="btn btn-outline btn-block btn-sm" type="button" onClick={resetForm}>
+                    <button className="btn btn-outline btn-block btn-sm transition-all duration-300 hover:scale-105" type="button" onClick={resetForm}>
                       ↻ Reset Form
                     </button>
                   )}

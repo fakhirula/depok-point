@@ -15,24 +15,24 @@ function AdminPageContent() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
 
   return (
-    <div className="flex min-h-screen bg-base-200">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-base-200">
       {/* Sidebar */}
       <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Main Content */}
-      <main className="flex-1">
+      <main className="flex-1 w-full lg:w-auto">
         {/* Header */}
         <header className="sticky top-0 z-10 border-b border-base-200 bg-base-100 shadow-sm">
-          <div className="px-4 py-6 sm:px-6 lg:px-8">
+          <div className="px-4 py-4 sm:py-6 sm:px-6 lg:px-8">
             <div>
-              <h1 className="text-2xl font-bold sm:text-3xl">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">
                 {activeTab === "overview" && "📊 Dashboard Overview"}
                 {activeTab === "add-location" && "➕ Tambah Lokasi Baru"}
                 {activeTab === "manage-locations" && "📍 Kelola Lokasi"}
                 {activeTab === "categories" && "📚 Manajemen Kategori"}
                 {activeTab === "carousel" && "🎠 Manajemen Carousel"}
               </h1>
-              <p className="mt-1 text-sm text-base-content/70">
+              <p className="mt-1 text-xs sm:text-sm text-base-content/70">
                 {activeTab === "overview" && "Lihat statistik dan ringkasan data Depok Point"}
                 {activeTab === "add-location" && "Tambahkan lokasi penting baru ke sistem"}
                 {activeTab === "manage-locations" && "Edit, hapus, atau perbarui data lokasi"}
@@ -44,7 +44,7 @@ function AdminPageContent() {
         </header>
 
         {/* Content */}
-        <div className="px-4 py-8 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
           {/* Overview Tab */}
           {activeTab === "overview" && (
             <div className="space-y-6">

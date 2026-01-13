@@ -96,12 +96,12 @@ export function LocationManager() {
   };
 
   return (
-    <div className="card bg-base-100 shadow">
-      <div className="card-body gap-4">
-        <h2 className="card-title">📍 Manajemen Lokasi</h2>
+    <div className="card bg-base-100 shadow hover-lift transition-smooth">
+      <div className="card-body gap-4 p-4 sm:p-6">
+        <h2 className="card-title text-base sm:text-lg">📍 Manajemen Lokasi</h2>
 
         {error && (
-          <div className="alert alert-error text-sm">
+          <div className="alert alert-error text-xs sm:text-sm">
             <span>{error}</span>
           </div>
         )}
@@ -110,7 +110,7 @@ export function LocationManager() {
           <input
             type="text"
             placeholder="Cari lokasi, kategori, alamat..."
-            className="input input-bordered input-sm"
+            className="input input-bordered input-sm sm:input-md transition-smooth focus:scale-[1.02]"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -119,32 +119,32 @@ export function LocationManager() {
           </label>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           {/* List */}
-          <div className="border border-base-300 rounded-box overflow-hidden">
-            <div className="max-h-96 overflow-y-auto">
+          <div className="border border-base-300 rounded-box overflow-hidden hover-lift transition-smooth">
+            <div className="max-h-80 sm:max-h-96 overflow-y-auto">
               {loading ? (
-                <div className="flex justify-center py-8">
-                  <span className="loading loading-spinner" />
+                <div className="flex justify-center py-6 sm:py-8">
+                  <span className="loading loading-spinner loading-sm sm:loading-md" />
                 </div>
               ) : filteredPlaces.length === 0 ? (
-                <div className="p-4 text-center text-base-content/60 text-sm">
+                <div className="p-4 text-center text-base-content/60 text-xs sm:text-sm">
                   Tidak ada lokasi yang cocok
                 </div>
               ) : (
                 filteredPlaces.map((place) => (
                   <div
                     key={place.id}
-                    className={`p-3 border-b border-base-200 cursor-pointer transition ${
-                      selectedPlace?.id === place.id ? "bg-primary/10" : "hover:bg-base-200"
+                    className={`p-2.5 sm:p-3 border-b border-base-200 cursor-pointer transition-all duration-300 hover:translate-x-1 ${
+                      selectedPlace?.id === place.id ? "bg-primary/10 scale-[1.02]" : "hover:bg-base-200"
                     }`}
                     onClick={() => {
                       setSelectedPlace(place);
                       setEditMode(false);
                     }}
                   >
-                    <p className="font-semibold text-sm">{place.name}</p>
-                    <p className="text-xs text-base-content/60">{place.category}</p>
+                    <p className="font-semibold text-xs sm:text-sm truncate">{place.name}</p>
+                    <p className="text-xs text-base-content/60 truncate">{place.category}</p>
                   </div>
                 ))
               )}
@@ -154,16 +154,16 @@ export function LocationManager() {
           {/* Detail & Edit */}
           <div>
             {selectedPlace ? (
-              <div className="border border-base-300 rounded-box p-4 space-y-4">
+              <div className="border border-base-300 rounded-box p-3 sm:p-4 space-y-3 sm:space-y-4 hover-lift transition-smooth">
                 {editMode ? (
-                  <form onSubmit={handleUpdatePlace} className="space-y-3">
+                  <form onSubmit={handleUpdatePlace} className="space-y-2 sm:space-y-3">
                     <div className="form-control">
-                      <label className="label">
-                        <span className="label-text text-sm font-semibold">Nama</span>
+                      <label className="label py-1">
+                        <span className="label-text text-xs sm:text-sm font-semibold">Nama</span>
                       </label>
                       <input
                         type="text"
-                        className="input input-bordered input-sm"
+                        className="input input-bordered input-sm transition-smooth focus:scale-[1.02]"
                         value={selectedPlace.name}
                         onChange={(e) =>
                           setSelectedPlace((prev) => prev ? { ...prev, name: e.target.value } : null)
@@ -172,12 +172,12 @@ export function LocationManager() {
                     </div>
 
                     <div className="form-control">
-                      <label className="label">
-                        <span className="label-text text-sm font-semibold">Kategori</span>
+                      <label className="label py-1">
+                        <span className="label-text text-xs sm:text-sm font-semibold">Kategori</span>
                       </label>
                       <input
                         type="text"
-                        className="input input-bordered input-sm"
+                        className="input input-bordered input-sm transition-smooth focus:scale-[1.02]"
                         value={selectedPlace.category}
                         onChange={(e) =>
                           setSelectedPlace((prev) => prev ? { ...prev, category: e.target.value } : null)
@@ -186,11 +186,11 @@ export function LocationManager() {
                     </div>
 
                     <div className="form-control">
-                      <label className="label">
-                        <span className="label-text text-sm font-semibold">Alamat</span>
+                      <label className="label py-1">
+                        <span className="label-text text-xs sm:text-sm font-semibold">Alamat</span>
                       </label>
                       <textarea
-                        className="textarea textarea-bordered textarea-sm"
+                        className="textarea textarea-bordered textarea-sm transition-smooth focus:scale-[1.02]"
                         value={selectedPlace.address}
                         onChange={(e) =>
                           setSelectedPlace((prev) => prev ? { ...prev, address: e.target.value } : null)
@@ -199,12 +199,12 @@ export function LocationManager() {
                     </div>
 
                     <div className="form-control">
-                      <label className="label">
-                        <span className="label-text text-sm font-semibold">Telepon</span>
+                      <label className="label py-1">
+                        <span className="label-text text-xs sm:text-sm font-semibold">Telepon</span>
                       </label>
                       <input
                         type="text"
-                        className="input input-bordered input-sm"
+                        className="input input-bordered input-sm transition-smooth focus:scale-[1.02]"
                         value={selectedPlace.phone}
                         onChange={(e) =>
                           setSelectedPlace((prev) => prev ? { ...prev, phone: e.target.value } : null)
@@ -213,11 +213,11 @@ export function LocationManager() {
                     </div>
 
                     <div className="form-control">
-                      <label className="label">
-                        <span className="label-text text-sm font-semibold">Deskripsi</span>
+                      <label className="label py-1">
+                        <span className="label-text text-xs sm:text-sm font-semibold">Deskripsi</span>
                       </label>
                       <textarea
-                        className="textarea textarea-bordered textarea-sm"
+                        className="textarea textarea-bordered textarea-sm transition-smooth focus:scale-[1.02]"
                         value={selectedPlace.description}
                         onChange={(e) =>
                           setSelectedPlace((prev) => prev ? { ...prev, description: e.target.value } : null)
@@ -226,12 +226,12 @@ export function LocationManager() {
                     </div>
 
                     <div className="flex gap-2">
-                      <button type="submit" className="btn btn-sm btn-primary flex-1">
+                      <button type="submit" className="btn btn-sm btn-primary flex-1 transition-all duration-300 hover:scale-105">
                         Simpan
                       </button>
                       <button
                         type="button"
-                        className="btn btn-sm btn-ghost flex-1"
+                        className="btn btn-sm btn-ghost flex-1 transition-all duration-300 hover:scale-105"
                         onClick={() => setEditMode(false)}
                       >
                         Batal
@@ -242,56 +242,56 @@ export function LocationManager() {
                   <>
                     <div>
                       <p className="text-xs text-base-content/60">Nama</p>
-                      <p className="font-semibold">{selectedPlace.name}</p>
+                      <p className="font-semibold text-sm sm:text-base break-words">{selectedPlace.name}</p>
                     </div>
 
                     <div>
                       <p className="text-xs text-base-content/60">Kategori</p>
-                      <p className="font-semibold">{selectedPlace.category}</p>
+                      <p className="font-semibold text-sm sm:text-base">{selectedPlace.category}</p>
                     </div>
 
                     <div>
                       <p className="text-xs text-base-content/60">Alamat</p>
-                      <p className="text-sm">{selectedPlace.address || "-"}</p>
+                      <p className="text-xs sm:text-sm break-words">{selectedPlace.address || "-"}</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <p className="text-xs text-base-content/60">Latitude</p>
-                        <p className="text-sm font-mono">{selectedPlace.latitude.toFixed(6)}</p>
+                        <p className="text-xs sm:text-sm font-mono">{selectedPlace.latitude.toFixed(6)}</p>
                       </div>
                       <div>
                         <p className="text-xs text-base-content/60">Longitude</p>
-                        <p className="text-sm font-mono">{selectedPlace.longitude.toFixed(6)}</p>
+                        <p className="text-xs sm:text-sm font-mono">{selectedPlace.longitude.toFixed(6)}</p>
                       </div>
                     </div>
 
                     <div>
                       <p className="text-xs text-base-content/60">Telepon</p>
-                      <p className="text-sm">{selectedPlace.phone || "-"}</p>
+                      <p className="text-xs sm:text-sm">{selectedPlace.phone || "-"}</p>
                     </div>
 
                     {selectedPlace.imageUrl && (
-                      <div>
+                      <div className="animate-fadeIn">
                         <p className="text-xs text-base-content/60 mb-2">Gambar</p>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={selectedPlace.imageUrl}
                           alt={selectedPlace.name}
-                          className="w-full h-32 object-cover rounded-box"
+                          className="w-full h-28 sm:h-32 object-cover rounded-box transition-transform duration-300 hover:scale-105"
                         />
                       </div>
                     )}
 
                     <div className="flex gap-2">
                       <button
-                        className="btn btn-sm btn-primary flex-1"
+                        className="btn btn-sm btn-primary flex-1 transition-all duration-300 hover:scale-105"
                         onClick={() => setEditMode(true)}
                       >
                         ✏️ Edit
                       </button>
                       <button
-                        className="btn btn-sm btn-error flex-1"
+                        className="btn btn-sm btn-error flex-1 transition-all duration-300 hover:scale-105"
                         onClick={() => handleDelete(selectedPlace.id)}
                         disabled={deleting === selectedPlace.id}
                       >
@@ -302,7 +302,7 @@ export function LocationManager() {
                 )}
               </div>
             ) : (
-              <div className="border border-base-300 rounded-box p-4 text-center text-base-content/60 text-sm">
+              <div className="border border-base-300 rounded-box p-4 text-center text-base-content/60 text-xs sm:text-sm">
                 Pilih lokasi untuk melihat detail
               </div>
             )}
