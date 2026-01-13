@@ -289,10 +289,13 @@ export default function Home() {
         {/* Hero Section */}
         <section className="bg-gradient-to-br from-primary/10 via-base-100 to-secondary/10">
           <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
-            <div className="grid gap-8 lg:grid-cols-2 items-center">
-              <div className="space-y-6">
+            <div className="grid gap-4 sm:gap-6 lg:gap-8 grid-cols-1 lg:grid-cols-2 items-center">
+              
+              {/* Text Content - Desktop: left column, Mobile: split layout */}
+              <div className="space-y-6 order-1 animate-slideInLeft">
+                {/* Badge - always on top */}
                 <div className="inline-block">
-                  <div className="flex items-center gap-2 badge badge-primary badge-lg">
+                  <div className="flex items-center gap-2 badge badge-primary badge-lg hover-scale">
                     <Image 
                       src="/logo.svg" 
                       alt="DepokPoint Logo" 
@@ -303,6 +306,13 @@ export default function Home() {
                     <span>Depok Point</span>
                   </div>
                 </div>
+
+                {/* Carousel - Shows here on mobile/tablet, hidden on desktop */}
+                <div className="lg:hidden animate-fadeInScale">
+                  <HeroCarousel slides={carouselSlides} loading={carouselLoading} />
+                </div>
+
+                {/* Heading and rest of content */}
                 <h1 className="text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
                   Sistem Informasi <span className="text-primary">GIS</span> Kota Depok
                 </h1>
@@ -310,21 +320,24 @@ export default function Home() {
                   Temukan lokasi penting di Kota Depok dengan mudah. Rumah sakit, kantor polisi, pemadam kebakaran, puskesmas, dan layanan publik lainnya dalam satu peta interaktif.
                 </p>
                 <div className="flex flex-wrap gap-3 pt-4">
-                  <a href="#smart-location" className="btn btn-primary btn-lg">
+                  <a href="#smart-location" className="btn btn-primary btn-lg hover-lift transition-smooth">
                     📍 Jelajahi Peta
                   </a>
-                  <a href="#about" className="btn btn-outline btn-lg">
+                  <a href="#about" className="btn btn-outline btn-lg hover-lift transition-smooth">
                     ℹ️ Pelajari Lebih Lanjut
                   </a>
                 </div>
                 <div className="flex flex-wrap gap-3 pt-6">
-                  <div className="badge badge-outline badge-lg">🔥 Realtime Updates</div>
-                  <div className="badge badge-outline badge-lg">☁️ Cloud Storage</div>
-                  <div className="badge badge-outline badge-lg">🗺️ OpenStreetMap</div>
+                  <div className="badge badge-outline badge-lg animate-fadeIn animate-delay-100 hover-scale">🔥 Realtime Updates</div>
+                  <div className="badge badge-outline badge-lg animate-fadeIn animate-delay-200 hover-scale">☁️ Cloud Storage</div>
+                  <div className="badge badge-outline badge-lg animate-fadeIn animate-delay-300 hover-scale">🗺️ OpenStreetMap</div>
                 </div>
               </div>
-              
-              <HeroCarousel slides={carouselSlides} loading={carouselLoading} />
+
+              {/* Carousel - Shows here on desktop only */}
+              <div className="hidden lg:block order-2 animate-slideInRight">
+                <HeroCarousel slides={carouselSlides} loading={carouselLoading} />
+              </div>
             </div>
           </div>
         </section>
@@ -351,7 +364,7 @@ export default function Home() {
               
               {/* Stats Items */}
               <div className="flex-shrink-0 w-80 scroll-snap-start">
-                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full hover-lift transition-smooth">
                   <div className="stat-figure text-primary text-4xl">📍</div>
                   <div className="stat-title">Total Lokasi</div>
                   <div className="stat-value text-primary">{stats.total}</div>
@@ -360,7 +373,7 @@ export default function Home() {
               </div>
 
               <div className="flex-shrink-0 w-80 scroll-snap-start">
-                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full hover-lift transition-smooth">
                   <div className="stat-figure text-secondary text-4xl">🏥</div>
                   <div className="stat-title">Rumah Sakit</div>
                   <div className="stat-value text-secondary">{stats.hospitalCount}</div>
@@ -369,7 +382,7 @@ export default function Home() {
               </div>
 
               <div className="flex-shrink-0 w-80 scroll-snap-start">
-                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full hover-lift transition-smooth">
                   <div className="stat-figure text-accent text-4xl">👮</div>
                   <div className="stat-title">Kantor Polisi</div>
                   <div className="stat-value text-accent">{stats.policeCount}</div>
@@ -378,7 +391,7 @@ export default function Home() {
               </div>
 
               <div className="flex-shrink-0 w-80 scroll-snap-start">
-                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full hover-lift transition-smooth">
                   <div className="stat-figure text-warning text-4xl">🔥</div>
                   <div className="stat-title">Pemadam Kebakaran</div>
                   <div className="stat-value text-warning">{stats.damkarCount}</div>
@@ -387,7 +400,7 @@ export default function Home() {
               </div>
 
               <div className="flex-shrink-0 w-80 scroll-snap-start">
-                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full hover-lift transition-smooth">
                   <div className="stat-figure text-info text-4xl">🎓</div>
                   <div className="stat-title">Sekolah</div>
                   <div className="stat-value text-info">{stats.schoolCount}</div>
@@ -396,7 +409,7 @@ export default function Home() {
               </div>
 
               <div className="flex-shrink-0 w-80 scroll-snap-start">
-                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full hover-lift transition-smooth">
                   <div className="stat-figure text-success text-4xl">🚌</div>
                   <div className="stat-title">Transportasi</div>
                   <div className="stat-value text-success">{stats.transportCount}</div>
@@ -405,7 +418,7 @@ export default function Home() {
               </div>
 
               <div className="flex-shrink-0 w-80 scroll-snap-start">
-                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full hover-lift transition-smooth">
                   <div className="stat-figure text-error text-4xl">🏛️</div>
                   <div className="stat-title">Kantor Pemerintahan</div>
                   <div className="stat-value text-error">{stats.adminCount}</div>
@@ -430,14 +443,14 @@ export default function Home() {
           </div>
 
           {/* Search Controls */}
-          <div className="mb-6 space-y-4">
-            <div className="grid gap-6 md:grid-cols-3">
+          <div className="mb-6 space-y-4 animate-fadeIn">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-2">
                 <label className="text-sm font-semibold">🔍 Cari Lokasi</label>
                 <input
                   type="text"
                   placeholder="Rumah sakit, kantor polisi, sekolah..."
-                  className="input input-bordered input-sm w-full"
+                  className="input input-bordered input-sm w-full transition-smooth focus:scale-[1.02]"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -445,7 +458,7 @@ export default function Home() {
               <div className="space-y-2">
                 <label className="text-sm font-semibold">📚 Kategori</label>
                 <select
-                  className="select select-bordered select-sm w-full"
+                  className="select select-bordered select-sm w-full transition-smooth focus:scale-[1.02]"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   disabled={categoriesLoading}
@@ -474,9 +487,9 @@ export default function Home() {
           </div>
 
           {/* Two Column Layout */}
-          <div className="grid gap-6 md:grid-cols-12">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-12">
             {/* Column 1: Map */}
-            <div className="card bg-base-100 shadow-lg border border-base-300 md:col-span-8">
+            <div className="card bg-base-100 shadow-lg border border-base-300 lg:col-span-8">
               <div className="card-body p-0 overflow-hidden rounded-2xl">
                 {loading ? (
                   <div className="flex items-center justify-center py-20">
@@ -493,7 +506,7 @@ export default function Home() {
             </div>
 
             {/* Column 2: Detail Information */}
-            <div className="card bg-base-100 shadow-lg border border-base-300 md:col-span-4">
+            <div className="card bg-base-100 shadow-lg border border-base-300 lg:col-span-4">
               <div className="card-body space-y-4">
                 <h3 className="card-title text-lg">📋 Detail Lokasi</h3>
                 
@@ -628,8 +641,8 @@ export default function Home() {
           </p>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <div className="card bg-base-100 shadow-xl border border-base-300 hover:shadow-2xl transition-shadow">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="card bg-base-100 shadow-xl border border-base-300 hover-lift transition-smooth">
             <figure className="h-48 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
               <span className="text-6xl">🏥</span>
             </figure>
@@ -641,12 +654,12 @@ export default function Home() {
               </p>
               <div className="card-actions justify-between items-center mt-2">
                 <span className="text-xs text-base-content/50">2 hari lalu</span>
-                <button className="btn btn-primary btn-sm">Baca Selengkapnya</button>
+                <button className="btn btn-primary btn-sm hover-lift transition-smooth">Baca Selengkapnya</button>
               </div>
             </div>
           </div>
 
-          <div className="card bg-base-100 shadow-xl border border-base-300 hover:shadow-2xl transition-shadow">
+          <div className="card bg-base-100 shadow-xl border border-base-300 hover-lift transition-smooth">
             <figure className="h-48 bg-gradient-to-br from-accent/20 to-warning/20 flex items-center justify-center">
               <span className="text-6xl">👮</span>
             </figure>
@@ -658,12 +671,12 @@ export default function Home() {
               </p>
               <div className="card-actions justify-between items-center mt-2">
                 <span className="text-xs text-base-content/50">5 hari lalu</span>
-                <button className="btn btn-accent btn-sm">Baca Selengkapnya</button>
+                <button className="btn btn-accent btn-sm hover-lift transition-smooth">Baca Selengkapnya</button>
               </div>
             </div>
           </div>
 
-          <div className="card bg-base-100 shadow-xl border border-base-300 hover:shadow-2xl transition-shadow">
+          <div className="card bg-base-100 shadow-xl border border-base-300 hover-lift transition-smooth">
             <figure className="h-48 bg-gradient-to-br from-warning/20 to-error/20 flex items-center justify-center">
               <span className="text-6xl">🔥</span>
             </figure>
@@ -675,7 +688,7 @@ export default function Home() {
               </p>
               <div className="card-actions justify-between items-center mt-2">
                 <span className="text-xs text-base-content/50">1 minggu lalu</span>
-                <button className="btn btn-warning btn-sm">Baca Selengkapnya</button>
+                <button className="btn btn-warning btn-sm hover-lift transition-smooth">Baca Selengkapnya</button>
               </div>
             </div>
           </div>
@@ -683,10 +696,10 @@ export default function Home() {
       </section>
 
       {/* About Section */}
-      <section id="about" className="bg-base-100 py-16">
+      <section id="about" className="bg-base-100 py-16 animate-fadeIn">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-12 lg:grid-cols-2 items-center">
-            <div className="space-y-6">
+          <div className="grid gap-6 sm:gap-8 lg:gap-12 grid-cols-1 lg:grid-cols-2 items-center">
+            <div className="space-y-6 animate-slideInLeft">
               <h2 className="text-3xl font-bold sm:text-4xl">ℹ️ Tentang Depok Point</h2>
               <p className="text-lg text-base-content/80 leading-relaxed">
                 Depok Point adalah sistem informasi geografis (GIS) yang menyediakan data lokasi penting di Kota Depok. 
@@ -730,23 +743,23 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gradient-to-br from-primary to-primary-focus p-6 rounded-2xl text-primary-content">
+            <div className="grid grid-cols-2 gap-4 animate-slideInRight">
+              <div className="bg-gradient-to-br from-primary to-primary-focus p-6 rounded-2xl text-primary-content hover-lift transition-smooth">
                 <div className="text-4xl mb-2">🏥</div>
                 <div className="text-3xl font-bold mb-1">15+</div>
                 <div className="text-sm opacity-90">Rumah Sakit</div>
               </div>
-              <div className="bg-gradient-to-br from-secondary to-secondary-focus p-6 rounded-2xl text-secondary-content">
+              <div className="bg-gradient-to-br from-secondary to-secondary-focus p-6 rounded-2xl text-secondary-content hover-lift transition-smooth">
                 <div className="text-4xl mb-2">👮</div>
                 <div className="text-3xl font-bold mb-1">20+</div>
                 <div className="text-sm opacity-90">Kantor Polisi</div>
               </div>
-              <div className="bg-gradient-to-br from-accent to-accent-focus p-6 rounded-2xl text-accent-content">
+              <div className="bg-gradient-to-br from-accent to-accent-focus p-6 rounded-2xl text-accent-content hover-lift transition-smooth">
                 <div className="text-4xl mb-2">🏢</div>
                 <div className="text-3xl font-bold mb-1">30+</div>
                 <div className="text-sm opacity-90">Layanan Publik</div>
               </div>
-              <div className="bg-gradient-to-br from-warning to-warning-focus p-6 rounded-2xl text-warning-content">
+              <div className="bg-gradient-to-br from-warning to-warning-focus p-6 rounded-2xl text-warning-content hover-lift transition-smooth">
                 <div className="text-4xl mb-2">🗺️</div>
                 <div className="text-3xl font-bold mb-1">100%</div>
                 <div className="text-sm opacity-90">Akurasi Data</div>
@@ -765,7 +778,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-2 lg:items-start max-w-6xl mx-auto">
+        <div className="grid gap-4 sm:gap-6 lg:gap-8 grid-cols-1 lg:grid-cols-2 lg:items-start max-w-6xl mx-auto">
           {/* Kolom 1: Alamat */}
           <div className="bg-base-100 border border-base-300 rounded-2xl p-6 h-full">
             <div className="flex items-start gap-3">
@@ -832,7 +845,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-base-300 py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          <div className="grid gap-4 sm:gap-6 lg:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-focus rounded-lg flex items-center justify-center p-1.5">

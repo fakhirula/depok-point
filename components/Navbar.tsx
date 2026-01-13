@@ -18,12 +18,12 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-base-100 shadow-md border-b border-base-200">
+    <nav className="sticky top-0 z-50 bg-base-100/95 backdrop-blur-md shadow-md border-b border-base-200 transition-all duration-300">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-focus rounded-lg flex items-center justify-center shadow-md p-1.5">
+          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-all duration-300 hover:scale-105">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-focus rounded-lg flex items-center justify-center shadow-md p-1.5 transition-transform duration-300 hover:rotate-6">
               <Image 
                 src="/logo.svg" 
                 alt="DepokPoint Logo" 
@@ -33,7 +33,7 @@ export function Navbar() {
               />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-bold text-base-content">Depok Point</h1>
+              <h1 className="text-xl font-bold text-base-content transition-colors">Depok Point</h1>
               <p className="text-xs text-base-content/60">Sistem Informasi GIS</p>
             </div>
           </Link>
@@ -44,7 +44,7 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-base-content hover:bg-base-200 transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-base-content hover:bg-base-200 transition-all duration-300 hover:scale-105 hover:shadow-sm"
               >
                 {item.label}
               </Link>
@@ -55,36 +55,58 @@ export function Navbar() {
           <div className="flex items-center gap-2">
             {user ? (
               <div className="hidden sm:flex items-center gap-2">
-                <div className="px-3 py-1.5 bg-base-200 rounded-lg">
-                  <p className="text-xs text-base-content/70">Logged in</p>
-                  <p className="text-sm font-semibold text-base-content truncate max-w-[150px]">
-                    {user.email}
-                  </p>
+                {/* Dropdown for logged in user */}
+                <div className="dropdown dropdown-end">
+                  <div tabIndex={0} role="button" className="btn btn-ghost btn-sm gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="text-left">
+                        <p className="text-xs text-base-content/70">Logged in</p>
+                        <p className="text-sm font-semibold text-base-content truncate max-w-[120px]">
+                          {user.email}
+                        </p>
+                      </div>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-200 mt-2">
+                    <li>
+                      <Link href="/admin" className="flex items-center gap-2">
+                        <span>🛠️</span>
+                        <span>Admin Panel</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <button
+                        onClick={async () => {
+                          await logout();
+                          window.location.href = "/";
+                        }}
+                        className="flex items-center gap-2 text-error"
+                      >
+                        <span>🚪</span>
+                        <span>Logout</span>
+                      </button>
+                    </li>
+                  </ul>
                 </div>
-                <button
-                  onClick={async () => {
-                    await logout();
-                    window.location.href = "/";
-                  }}
-                  className="btn btn-ghost btn-sm"
-                >
-                  🚪 Logout
-                </button>
               </div>
             ) : (
-              <Link href="/admin/login" className="hidden sm:inline-flex btn btn-primary btn-sm">
-                <span>🔐</span>
-                Login Admin
-              </Link>
+              <>
+                <Link href="/admin/login" className="hidden sm:inline-flex btn btn-primary btn-sm">
+                  <span>🔐</span>
+                  Login Admin
+                </Link>
+                <Link
+                  href="/admin"
+                  className="hidden sm:inline-flex btn btn-outline btn-sm"
+                >
+                  <span>🛠️</span>
+                  Admin Panel
+                </Link>
+              </>
             )}
-
-            <Link
-              href="/admin"
-              className="hidden sm:inline-flex btn btn-outline btn-sm"
-            >
-              <span>🛠️</span>
-              Admin Panel
-            </Link>
 
             {/* Mobile Menu Toggle */}
             <button
