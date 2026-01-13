@@ -30,14 +30,14 @@ function AdminPageContent() {
                 {activeTab === "add-location" && "➕ Tambah Lokasi Baru"}
                 {activeTab === "manage-locations" && "📍 Kelola Lokasi"}
                 {activeTab === "categories" && "📚 Manajemen Kategori"}
-              {activeTab === "carousel" && "🎠 Manajemen Carousel"}
-            </h1>
-            <p className="mt-1 text-sm text-base-content/70">
-              {activeTab === "overview" && "Lihat statistik dan ringkasan data Depok Point"}
-              {activeTab === "add-location" && "Tambahkan lokasi penting baru ke sistem"}
-              {activeTab === "manage-locations" && "Edit, hapus, atau perbarui data lokasi"}
-              {activeTab === "categories" && "Kelola kategori dan tambahkan kategori baru"}
-              {activeTab === "carousel" && "Kelola slide carousel di halaman utama"}
+                {activeTab === "carousel" && "🎠 Manajemen Carousel"}
+              </h1>
+              <p className="mt-1 text-sm text-base-content/70">
+                {activeTab === "overview" && "Lihat statistik dan ringkasan data Depok Point"}
+                {activeTab === "add-location" && "Tambahkan lokasi penting baru ke sistem"}
+                {activeTab === "manage-locations" && "Edit, hapus, atau perbarui data lokasi"}
+                {activeTab === "categories" && "Kelola kategori dan tambahkan kategori baru"}
+                {activeTab === "carousel" && "Kelola slide carousel di halaman utama"}
               </p>
             </div>
           </div>

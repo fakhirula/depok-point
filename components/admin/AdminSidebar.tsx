@@ -23,12 +23,27 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
     router.push("/");
   };
 
-  const menuItems = [
-    { id: "overview", label: "Overview" },
-    { id: "add-location", label: "Tambah Lokasi" },
-    { id: "manage-locations", label: "Kelola Lokasi" },
-    { id: "categories", label: "Manajemen Kategori" },
-    { id: "carousel", label: "Carousel Hero" },
+  const menuGroups = [
+    {
+      title: "Dashboard",
+      items: [
+        { id: "overview", label: "Overview" },
+      ],
+    },
+    {
+      title: "Konten",
+      items: [
+        { id: "carousel", label: "Carousel Hero" },
+        { id: "categories", label: "Manajemen Kategori" },
+      ],
+    },
+    {
+      title: "Data Lokasi",
+      items: [
+        { id: "add-location", label: "Tambah Lokasi" },
+        { id: "manage-locations", label: "Kelola Lokasi" },
+      ],
+    },
   ] as const;
 
   const iconMap: Record<string, string> = {
@@ -92,19 +107,29 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="space-y-2 p-4">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleTabChange(item.id as AdminTab)}
-              className={`w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition-all ${
-                activeTab === item.id
-                  ? "bg-primary text-primary-content shadow-md"
-                  : "bg-base-200 text-base-content hover:bg-base-300"
-              }`}
-            >
-              <span className="text-lg">{iconMap[item.id]}</span> {item.label}
-            </button>
+        <nav className="p-4 space-y-6">
+          {menuGroups.map((group) => (
+            <div key={group.title}>
+              <p className="px-4 py-2 text-xs font-semibold uppercase text-base-content/60 tracking-wider">
+                {group.title}
+              </p>
+              <div className="space-y-2">
+                {group.items.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleTabChange(item.id as AdminTab)}
+                    className={`w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition-all flex items-center gap-3 ${
+                      activeTab === item.id
+                        ? "bg-primary text-primary-content shadow-md"
+                        : "bg-base-200 text-base-content hover:bg-base-300"
+                    }`}
+                  >
+                    <span className="text-lg">{iconMap[item.id]}</span>
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 

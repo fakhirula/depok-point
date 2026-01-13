@@ -1,5 +1,6 @@
 "use client";
 
+import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
 import { Place } from "@/types/place";
 
@@ -18,11 +19,8 @@ export function MapView({ places, selectedId, onSelect }: Props) {
   useEffect(() => {
     setIsClient(true);
     
-    // Dynamically import Leaflet and react-leaflet only on client
-    Promise.all([
-      import("leaflet/dist/leaflet.css"),
-      import("react-leaflet"),
-    ]).then(([_, reactLeaflet]) => {
+    // Dynamically import react-leaflet only on client
+    import("react-leaflet").then((reactLeaflet) => {
       setMapComponents(reactLeaflet);
     });
   }, []);
