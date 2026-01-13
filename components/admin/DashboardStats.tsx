@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, query } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Place, PlaceCategory } from "@/types/place";
 
@@ -15,36 +15,39 @@ export function DashboardStats() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadStats = async () => {
-      try {
-        // Get all places
-        const placesSnapshot = await getDocs(collection(db, "places"));
-        const places = placesSnapshot.docs.map((doc) => doc.data()) as Place[];
+    try {
+      // Real-time listener for places
+      const placesUnsubscribe = onSnapshot(
+        collection(db, "places"),
+        (placesSnapshot) => {
+          const places = placesSnapshot.docs.map((doc) => doc.data()) as Place[];
 
-        // Get all categories
-        const categoriesSnapshot = await getDocs(collection(db, "categories"));
+          // Count by category
+          const categoryCounts: Record<string, number> = {};
+          places.forEach((place) => {
+            const category = place.category as string;
+            categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+          });
 
-        // Count by category
-        const categoryCounts: Record<string, number> = {};
-        places.forEach((place) => {
-          const category = place.category as string;
-          categoryCounts[category] = (categoryCounts[category] || 0) + 1;
-        });
+          setStats({
+            totalPlaces: places.length,
+            totalCategories: Object.keys(categoryCounts).length,
+            categoryCounts,
+            lastUpdated: new Date(),
+          });
+          setLoading(false);
+        },
+        (error) => {
+          console.error("Error loading places:", error);
+          setLoading(false);
+        }
+      );
 
-        setStats({
-          totalPlaces: places.length,
-          totalCategories: categoriesSnapshot.size,
-          categoryCounts,
-          lastUpdated: new Date(),
-        });
-        setLoading(false);
-      } catch (error) {
-        console.error("Error loading stats:", error);
-        setLoading(false);
-      }
-    };
-
-    loadStats();
+      return () => placesUnsubscribe();
+    } catch (error) {
+      console.error("Error setting up listener:", error);
+      setLoading(false);
+    }
   }, []);
 
   const topCategories = Object.entries(stats.categoryCounts)
@@ -97,9 +100,10 @@ export function CategoryBreakdown() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const placesSnapshot = await getDocs(collection(db, "places"));
+    // Real-time listener for places
+    const unsubscribe = onSnapshot(
+      collection(db, "places"),
+      (placesSnapshot) => {
         const places = placesSnapshot.docs.map((doc) => doc.data()) as Place[];
 
         const counts: Record<string, number> = {};
@@ -113,19 +117,20 @@ export function CategoryBreakdown() {
           .map(([name, count]) => ({
             name,
             count,
-            percentage: (count / total) * 100,
+            percentage: total > 0 ? (count / total) * 100 : 0,
           }))
           .sort((a, b) => b.count - a.count);
 
         setCategories(data);
         setLoading(false);
-      } catch (error) {
+      },
+      (error) => {
         console.error("Error loading categories:", error);
         setLoading(false);
       }
-    };
+    );
 
-    loadData();
+    return () => unsubscribe();
   }, []);
 
   return (

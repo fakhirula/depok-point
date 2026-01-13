@@ -30,7 +30,6 @@ type FormState = {
   latitude: string;
   longitude: string;
   phone: string;
-  description: string;
   imageFile?: File | null;
 };
 
@@ -50,7 +49,6 @@ export default function AdminTabContent() {
     latitude: "",
     longitude: "",
     phone: "",
-    description: "",
     imageFile: null,
   });
 
@@ -158,7 +156,6 @@ export default function AdminTabContent() {
       latitude: "",
       longitude: "",
       phone: "",
-      description: "",
       imageFile: null,
     });
     setPreviewUrl(null);
@@ -192,7 +189,6 @@ export default function AdminTabContent() {
         latitude,
         longitude,
         phone: form.phone,
-        description: form.description,
         imageUrl,
         updatedAt: new Date().toISOString(),
       });
@@ -342,16 +338,6 @@ export default function AdminTabContent() {
                     </div>
                   </div>
                   <p className="text-xs text-base-content/60 mt-2">Klik peta untuk mengisi koordinat otomatis</p>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Deskripsi</label>
-                  <textarea
-                    className="textarea textarea-bordered h-20 w-full"
-                    placeholder="Deskripsi singkat tentang lokasi..."
-                    value={form.description}
-                    onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                  />
                 </div>
 
                 <div className="space-y-2">

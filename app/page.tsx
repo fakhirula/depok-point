@@ -170,7 +170,12 @@ export default function Home() {
   const filteredPlaces = useMemo(() => {
     return places.filter((place) => {
       const matchCategory = selectedCategory === "all" || place.category === selectedCategory;
-      const matchSearch = place.name.toLowerCase().includes(search.toLowerCase());
+      const searchLower = search.toLowerCase();
+      const matchSearch = 
+        place.name.toLowerCase().includes(searchLower) ||
+        place.category.toLowerCase().includes(searchLower) ||
+        (place.address?.toLowerCase().includes(searchLower) ?? false) ||
+        (place.phone?.toLowerCase().includes(searchLower) ?? false);
       return matchCategory && matchSearch;
     });
   }, [places, selectedCategory, search]);
@@ -179,15 +184,21 @@ export default function Home() {
     const total = places.length;
     const hospitalCount = places.filter((p) => p.category === "Rumah Sakit").length;
     const policeCount = places.filter((p) => p.category === "Kantor Polisi").length;
-    const damkarCount = places.filter((p) => p.category === "Damkar").length;
+    const damkarCount = places.filter((p) => p.category === "Pemadam Kebakaran").length;
+    const schoolCount = places.filter((p) => p.category === "Sekolah").length;
+    const transportCount = places.filter((p) => p.category === "Transportasi").length;
+    const adminCount = places.filter((p) => p.category === "Kantor Pemerintahan").length;
     return {
       total,
       hospitalCount,
       policeCount,
       damkarCount,
+      schoolCount,
+      transportCount,
+      adminCount,
       selectedCount: filteredPlaces.length,
     };
-  }, [places, filteredPlaces.length]);
+  }, [places, filteredPlaces]);
 
   const resetForm = () => {
     setForm({
@@ -296,7 +307,7 @@ export default function Home() {
                   Sistem Informasi <span className="text-primary">GIS</span> Kota Depok
                 </h1>
                 <p className="text-lg text-base-content/80 leading-relaxed">
-                  Temukan lokasi penting di Kota Depok dengan mudah. Rumah sakit, kantor polisi, damkar, puskesmas, dan layanan publik lainnya dalam satu peta interaktif.
+                  Temukan lokasi penting di Kota Depok dengan mudah. Rumah sakit, kantor polisi, pemadam kebakaran, puskesmas, dan layanan publik lainnya dalam satu peta interaktif.
                 </p>
                 <div className="flex flex-wrap gap-3 pt-4">
                   <a href="#smart-location" className="btn btn-primary btn-lg">
@@ -318,33 +329,94 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Stats Section */}
+        {/* Stats Section - Carousel */}
         <section className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300">
-              <div className="stat-figure text-primary text-4xl">📍</div>
-              <div className="stat-title">Total Lokasi</div>
-              <div className="stat-value text-primary">{stats.total}</div>
-              <div className="stat-desc">Semua kategori tersedia</div>
+          <div className="relative">
+            {/* Carousel Container */}
+            <div 
+              className="flex overflow-x-auto gap-6 pb-4 scroll-smooth"
+              style={{
+                scrollBehavior: 'smooth',
+                scrollSnapType: 'x mandatory',
+                WebkitOverflowScrolling: 'touch',
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
+              }}
+            >
+              <style>{`
+                div[style*="scroll-smooth"]::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
+              
+              {/* Stats Items */}
+              <div className="flex-shrink-0 w-80 scroll-snap-start">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                  <div className="stat-figure text-primary text-4xl">📍</div>
+                  <div className="stat-title">Total Lokasi</div>
+                  <div className="stat-value text-primary">{stats.total}</div>
+                  <div className="stat-desc">Semua kategori tersedia</div>
+                </div>
+              </div>
+
+              <div className="flex-shrink-0 w-80 scroll-snap-start">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                  <div className="stat-figure text-secondary text-4xl">🏥</div>
+                  <div className="stat-title">Rumah Sakit</div>
+                  <div className="stat-value text-secondary">{stats.hospitalCount}</div>
+                  <div className="stat-desc">Fasilitas kesehatan</div>
+                </div>
+              </div>
+
+              <div className="flex-shrink-0 w-80 scroll-snap-start">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                  <div className="stat-figure text-accent text-4xl">👮</div>
+                  <div className="stat-title">Kantor Polisi</div>
+                  <div className="stat-value text-accent">{stats.policeCount}</div>
+                  <div className="stat-desc">Keamanan & layanan</div>
+                </div>
+              </div>
+
+              <div className="flex-shrink-0 w-80 scroll-snap-start">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                  <div className="stat-figure text-warning text-4xl">🔥</div>
+                  <div className="stat-title">Pemadam Kebakaran</div>
+                  <div className="stat-value text-warning">{stats.damkarCount}</div>
+                  <div className="stat-desc">Penanggulangan bencana</div>
+                </div>
+              </div>
+
+              <div className="flex-shrink-0 w-80 scroll-snap-start">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                  <div className="stat-figure text-info text-4xl">🎓</div>
+                  <div className="stat-title">Sekolah</div>
+                  <div className="stat-value text-info">{stats.schoolCount}</div>
+                  <div className="stat-desc">Pendidikan</div>
+                </div>
+              </div>
+
+              <div className="flex-shrink-0 w-80 scroll-snap-start">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                  <div className="stat-figure text-success text-4xl">🚌</div>
+                  <div className="stat-title">Transportasi</div>
+                  <div className="stat-value text-success">{stats.transportCount}</div>
+                  <div className="stat-desc">Mobilitas umum</div>
+                </div>
+              </div>
+
+              <div className="flex-shrink-0 w-80 scroll-snap-start">
+                <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300 h-full">
+                  <div className="stat-figure text-error text-4xl">🏛️</div>
+                  <div className="stat-title">Kantor Pemerintahan</div>
+                  <div className="stat-value text-error">{stats.adminCount}</div>
+                  <div className="stat-desc">Administrasi daerah</div>
+                </div>
+              </div>
             </div>
-            <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300">
-              <div className="stat-figure text-secondary text-4xl">🏥</div>
-              <div className="stat-title">Rumah Sakit</div>
-              <div className="stat-value text-secondary">{stats.hospitalCount}</div>
-              <div className="stat-desc">Fasilitas kesehatan</div>
-            </div>
-            <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300">
-              <div className="stat-figure text-accent text-4xl">👮</div>
-              <div className="stat-title">Kantor Polisi</div>
-              <div className="stat-value text-accent">{stats.policeCount}</div>
-              <div className="stat-desc">Keamanan & layanan</div>
-            </div>
-            <div className="stat rounded-2xl bg-base-100 shadow-lg border border-base-300">
-              <div className="stat-figure text-warning text-4xl">🔥</div>
-              <div className="stat-title">Damkar</div>
-              <div className="stat-value text-warning">{stats.damkarCount}</div>
-              <div className="stat-desc">Penanggulangan bencana</div>
-            </div>
+
+            {/* Gradient Overlays untuk Visual Cue */}
+            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-base-200 to-transparent pointer-events-none z-10 rounded-2xl"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-base-200 to-transparent pointer-events-none z-10 rounded-2xl"></div>
           </div>
         </section>
 
@@ -357,66 +429,192 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="card bg-base-100 shadow-lg border border-base-300">
-            <div className="card-body space-y-4">
-              <div className="grid gap-3 md:grid-cols-3 md:items-end">
-                <div className="form-control w-full">
-                  <label className="label">
-                    <span className="label-text">Cari lokasi</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Rumah sakit, kantor polisi, dll"
-                    className="input input-bordered"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </div>
-                <div className="form-control w-full">
-                  <label className="label">
-                    <span className="label-text">Kategori</span>
-                  </label>
-                  <select
-                    className="select select-bordered"
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    disabled={categoriesLoading}
-                  >
-                    <option value="all">Semua Kategori</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.name}>
-                        {category.icon} {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-control w-full">
-                  <label className="label">
-                    <span className="label-text">Info</span>
-                  </label>
-                  <div className="input input-bordered bg-base-200 text-sm flex items-center">
-                    Klik marker di peta untuk lihat detail
-                  </div>
+          {/* Search Controls */}
+          <div className="mb-6 space-y-4">
+            <div className="grid gap-6 md:grid-cols-3">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">🔍 Cari Lokasi</label>
+                <input
+                  type="text"
+                  placeholder="Rumah sakit, kantor polisi, sekolah..."
+                  className="input input-bordered input-sm w-full"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">📚 Kategori</label>
+                <select
+                  className="select select-bordered select-sm w-full"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  disabled={categoriesLoading}
+                >
+                  <option value="all">Semua Kategori</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.name}>
+                      {category.icon} {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">📊 Hasil</label>
+                <div className="input input-bordered input-sm bg-base-200 flex items-center justify-center font-semibold text-primary w-full">
+                  {filteredPlaces.length} Lokasi
                 </div>
               </div>
+            </div>
 
-              {error ? (
-                <div className="alert alert-error flex items-center gap-2 text-sm">
-                  <span>{error}</span>
-                </div>
-              ) : null}
+            {error ? (
+              <div className="alert alert-error flex items-center gap-2 text-sm">
+                <span>{error}</span>
+              </div>
+            ) : null}
+          </div>
 
-              {loading ? (
-                <div className="flex items-center justify-center py-10">
-                  <span className="loading loading-spinner loading-lg text-primary" aria-label="Memuat" />
-                </div>
-              ) : filteredPlaces.length === 0 ? (
-                <div className="rounded-box border border-dashed border-base-300 p-6 text-center text-sm">
-                  Belum ada data untuk filter ini. Tambahkan lokasi baru di admin.
-                </div>
-              ) : (
-                <MapView places={filteredPlaces} selectedId={selectedId} onSelect={setSelectedId} />
-              )}
+          {/* Two Column Layout */}
+          <div className="grid gap-6 md:grid-cols-12">
+            {/* Column 1: Map */}
+            <div className="card bg-base-100 shadow-lg border border-base-300 md:col-span-8">
+              <div className="card-body p-0 overflow-hidden rounded-2xl">
+                {loading ? (
+                  <div className="flex items-center justify-center py-20">
+                    <span className="loading loading-spinner loading-lg text-primary" aria-label="Memuat" />
+                  </div>
+                ) : filteredPlaces.length === 0 ? (
+                  <div className="rounded-box border border-dashed border-base-300 p-6 text-center text-sm h-[480px] flex items-center justify-center">
+                    Belum ada data untuk filter ini. Tambahkan lokasi baru di admin.
+                  </div>
+                ) : (
+                  <MapView places={filteredPlaces} selectedId={selectedId} onSelect={setSelectedId} />
+                )}
+              </div>
+            </div>
+
+            {/* Column 2: Detail Information */}
+            <div className="card bg-base-100 shadow-lg border border-base-300 md:col-span-4">
+              <div className="card-body space-y-4">
+                <h3 className="card-title text-lg">📋 Detail Lokasi</h3>
+                
+                {selectedId && filteredPlaces.find(p => p.id === selectedId) ? (
+                  (() => {
+                    const place = filteredPlaces.find(p => p.id === selectedId)!;
+                    return (
+                      <form className="space-y-5">
+                        {/* Row 1: Nama Lokasi & Kategori */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="form-control w-full">
+                            <label className="label pb-2">
+                              <span className="label-text font-semibold">Nama Lokasi</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="input input-bordered input-sm bg-base-200 focus:outline-none w-full"
+                              value={place.name}
+                              readOnly
+                            />
+                          </div>
+
+                          <div className="form-control w-full">
+                            <label className="label pb-2">
+                              <span className="label-text font-semibold">Kategori</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="input input-bordered input-sm bg-base-200 focus:outline-none w-full"
+                              value={place.category}
+                              readOnly
+                            />
+                          </div>
+                        </div>
+
+                        {/* Row 2: Alamat */}
+                        <div className="form-control w-full">
+                          <label className="label pb-2">
+                            <span className="label-text font-semibold">Alamat</span>
+                          </label>
+                          <textarea
+                            className="textarea textarea-bordered textarea-sm bg-base-200 focus:outline-none resize-none w-full"
+                            rows={2}
+                            value={place.address || "-"}
+                            readOnly
+                          />
+                        </div>
+
+                        {/* Row 3: Nomor Telepon & Lat/Lon */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="form-control w-full">
+                            <label className="label pb-2">
+                              <span className="label-text font-semibold">Nomor Telepon</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="input input-bordered input-sm bg-base-200 focus:outline-none w-full"
+                              value={place.phone || "-"}
+                              readOnly
+                            />
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="form-control w-full">
+                              <label className="label pb-2">
+                                <span className="label-text font-semibold text-xs">Latitude</span>
+                              </label>
+                              <input
+                                type="text"
+                                className="input input-bordered input-xs bg-base-200 focus:outline-none font-mono w-full"
+                                value={place.latitude.toFixed(6)}
+                                readOnly
+                              />
+                            </div>
+                            <div className="form-control w-full">
+                              <label className="label pb-2">
+                                <span className="label-text font-semibold text-xs">Longitude</span>
+                              </label>
+                              <input
+                                type="text"
+                                className="input input-bordered input-xs bg-base-200 focus:outline-none font-mono w-full"
+                                value={place.longitude.toFixed(6)}
+                                readOnly
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Row 4: Gambar */}
+                        {place.imageUrl && (
+                          <div className="form-control w-full">
+                            <label className="label pb-2">
+                              <span className="label-text font-semibold">Gambar</span>
+                            </label>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={place.imageUrl}
+                              alt={place.name}
+                              className="w-full h-32 object-cover rounded-box border border-base-300"
+                            />
+                          </div>
+                        )}
+
+                        {/* Row 5: Updated Info */}
+                        <div className="text-xs text-base-content/60 pt-2 border-t border-base-300">
+                          Diperbarui: {place.updatedAt ? formatDate(place.updatedAt) : "Belum pernah diperbarui"}
+                        </div>
+                      </form>
+                    );
+                  })()
+                ) : (
+                  <div className="flex items-center justify-center py-12 text-center">
+                    <div>
+                      <p className="text-lg font-semibold mb-2">👈 Klik Marker di Peta</p>
+                      <p className="text-sm text-base-content/60">
+                        Pilih lokasi di peta untuk melihat informasi detail
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </section>
@@ -470,7 +668,7 @@ export default function Home() {
               <span className="text-6xl">🔥</span>
             </figure>
             <div className="card-body">
-              <div className="badge badge-warning badge-sm">Damkar</div>
+              <div className="badge badge-warning badge-sm">Pemadam Kebakaran</div>
               <h3 className="card-title text-lg">Pelatihan Pemadaman Kebakaran</h3>
               <p className="text-sm text-base-content/70">
                 Damkar Depok menggelar pelatihan gratis untuk warga tentang cara menangani kebakaran di lingkungan rumah.

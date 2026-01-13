@@ -1,7 +1,7 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Place } from "@/types/place";
 
 interface LocationMarker {
@@ -18,58 +18,105 @@ type Props = {
 
 export function AdminMapView({ places, selectedLocation, onLocationSelect }: Props) {
   const center: [number, number] = [-6.4025, 106.7942];
-  const [mapComponents, setMapComponents] = useState<any>(null);
-  const [L, setL] = useState<any>(null);
+  const [isClient, setIsClient] = useState(false);
+  const mapRef = useRef<any>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
 
   useEffect(() => {
-    const loadMapComponents = async () => {
-      const [leaflet, reactLeaflet] = await Promise.all([
-        import("leaflet"),
-        import("react-leaflet"),
-      ]);
-      
-      const defaultIcon = leaflet.default.icon({
-        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41],
-      });
-
-      const MapClickHandler = ({ onLocationSelect }: { onLocationSelect: (location: LocationMarker) => void }) => {
-        reactLeaflet.useMapEvents({
-          click(e: any) {
-            onLocationSelect({
-              lat: e.latlng.lat,
-              lng: e.latlng.lng,
-              isNew: true,
-            });
-          },
-        });
-        return null;
-      };
-
-      setMapComponents({
-        ...reactLeaflet,
-        defaultIcon,
-        MapClickHandler,
-      });
-      setL(leaflet.default);
-    };
-
-    loadMapComponents();
+    setIsClient(true);
   }, []);
 
-  if (!mapComponents) {
+  useEffect(() => {
+    if (!isClient || !mapRef.current) return;
+
+    // Dynamically import Leaflet
+    import("leaflet").then((leafletModule) => {
+      const L = leafletModule.default;
+
+      // Initialize map
+      if (!mapInstanceRef.current) {
+        mapInstanceRef.current = L.map(mapRef.current, {
+          center: center,
+          zoom: 12,
+          scrollWheelZoom: true,
+        });
+
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 19,
+        }).addTo(mapInstanceRef.current);
+
+        // Handle map click
+        mapInstanceRef.current.on('click', (e: any) => {
+          onLocationSelect({
+            lat: e.latlng.lat,
+            lng: e.latlng.lng,
+            isNew: true,
+          });
+        });
+      }
+
+      const map = mapInstanceRef.current;
+
+      // Clear existing markers
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+
+      // Add existing places markers
+      places.forEach((place) => {
+        const marker = L.marker([place.latitude, place.longitude], {
+          opacity: selectedLocation?.isNew && selectedLocation.lat !== place.latitude ? 0.5 : 1,
+        });
+
+        const popupContent = `
+          <div class="space-y-2 text-sm">
+            <p class="font-semibold">${place.name}</p>
+            <span class="badge badge-outline badge-sm">${place.category}</span>
+            ${place.address ? `<p class="text-base-content/80">${place.address}</p>` : ''}
+          </div>
+        `;
+
+        marker.bindPopup(popupContent);
+        marker.addTo(map);
+        markersRef.current.push(marker);
+      });
+
+      // Add new location marker if selected
+      if (selectedLocation?.isNew) {
+        const newMarker = L.marker([selectedLocation.lat, selectedLocation.lng]);
+
+        const newPopupContent = `
+          <div class="space-y-2 text-sm">
+            <p class="font-semibold text-primary">Lokasi Baru</p>
+            <p>Lat: ${selectedLocation.lat.toFixed(6)}</p>
+            <p>Lng: ${selectedLocation.lng.toFixed(6)}</p>
+            <p class="text-xs text-base-content/70">Isi form di samping untuk melanjutkan</p>
+          </div>
+        `;
+
+        newMarker.bindPopup(newPopupContent);
+        newMarker.addTo(map);
+        markersRef.current.push(newMarker);
+
+        // Center map on new location
+        map.setView([selectedLocation.lat, selectedLocation.lng], 12);
+      }
+
+      return () => {
+        // Cleanup handled by mapInstanceRef
+      };
+    });
+  }, [isClient, places, selectedLocation, onLocationSelect]);
+
+  if (!isClient) {
     return (
       <div className="flex h-[500px] items-center justify-center rounded-box border border-base-300 bg-base-100">
         <span className="loading loading-spinner loading-lg"></span>
       </div>
     );
   }
-
-  const { MapContainer, TileLayer, Marker, Popup, defaultIcon, MapClickHandler } = mapComponents;
 
   return (
     <div className="space-y-3">
@@ -90,48 +137,11 @@ export function AdminMapView({ places, selectedLocation, onLocationSelect }: Pro
         <span>Klik pada peta untuk mengatur koordinat lokasi baru</span>
       </div>
 
-      <div className="w-full overflow-hidden rounded-box border border-base-300 shadow-sm bg-base-100">
-        <MapContainer center={center} zoom={12} className="h-[500px] w-full" scrollWheelZoom>
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          {/* Existing places markers */}
-          {places.map((place) => (
-            <Marker
-              key={place.id}
-              position={[place.latitude, place.longitude]}
-              icon={defaultIcon}
-              opacity={selectedLocation?.isNew && selectedLocation.lat !== place.latitude ? 0.5 : 1}
-            >
-              <Popup>
-                <div className="space-y-2 text-sm">
-                  <p className="font-semibold">{place.name}</p>
-                  <p className="badge badge-outline badge-sm">{place.category}</p>
-                  {place.address ? <p className="text-base-content/80">{place.address}</p> : null}
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-
-          {/* New location marker */}
-          {selectedLocation?.isNew && (
-            <Marker position={[selectedLocation.lat, selectedLocation.lng]} icon={defaultIcon}>
-              <Popup>
-                <div className="space-y-2 text-sm">
-                  <p className="font-semibold text-primary">Lokasi Baru</p>
-                  <p>Lat: {selectedLocation.lat.toFixed(6)}</p>
-                  <p>Lng: {selectedLocation.lng.toFixed(6)}</p>
-                  <p className="text-xs text-base-content/70">Isi form di samping untuk melanjutkan</p>
-                </div>
-              </Popup>
-            </Marker>
-          )}
-
-          <MapClickHandler onLocationSelect={onLocationSelect} />
-        </MapContainer>
-      </div>
+      <div
+        ref={mapRef}
+        className="w-full overflow-hidden rounded-box border border-base-300 shadow-sm bg-base-100"
+        style={{ height: '500px', width: '100%' }}
+      />
 
       {selectedLocation && (
         <div className="rounded-box bg-success/10 border border-success p-3 text-sm text-success">

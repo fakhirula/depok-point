@@ -271,11 +271,6 @@ export function LocationManager() {
                       <p className="text-sm">{selectedPlace.phone || "-"}</p>
                     </div>
 
-                    <div>
-                      <p className="text-xs text-base-content/60">Deskripsi</p>
-                      <p className="text-sm">{selectedPlace.description || "-"}</p>
-                    </div>
-
                     {selectedPlace.imageUrl && (
                       <div>
                         <p className="text-xs text-base-content/60 mb-2">Gambar</p>

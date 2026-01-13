@@ -2,9 +2,10 @@ export type PlaceCategory =
   | "Rumah Sakit"
   | "Puskesmas"
   | "Kantor Polisi"
-  | "Damkar"
+  | "Pemadam Kebakaran"
   | "Kantor Pemerintahan"
   | "Transportasi"
+  | "Sekolah"
   | "Lainnya";
 
 export type Place = {
