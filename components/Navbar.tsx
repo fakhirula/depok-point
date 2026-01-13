@@ -57,7 +57,7 @@ export function Navbar() {
               <div className="hidden sm:flex items-center gap-2">
                 {/* Dropdown for logged in user */}
                 <div className="dropdown dropdown-end">
-                  <div tabIndex={0} role="button" className="btn btn-ghost btn-sm gap-2">
+                  <div tabIndex={0} role="button" className="btn btn-ghost btn-sm gap-2 transition-all duration-300 hover:scale-105 hover:bg-base-200">
                     <div className="flex items-center gap-2">
                       <div className="text-left">
                         <p className="text-xs text-base-content/70">Logged in</p>
@@ -65,14 +65,14 @@ export function Navbar() {
                           {user.email}
                         </p>
                       </div>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
                   </div>
-                  <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-200 mt-2">
+                  <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-200 mt-2 animate-fadeInScale">
                     <li>
-                      <Link href="/admin" className="flex items-center gap-2">
+                      <Link href="/admin" className="flex items-center gap-2 transition-all duration-300 hover:scale-105">
                         <span>🛠️</span>
                         <span>Admin Panel</span>
                       </Link>
@@ -83,7 +83,7 @@ export function Navbar() {
                           await logout();
                           window.location.href = "/";
                         }}
-                        className="flex items-center gap-2 text-error"
+                        className="flex items-center gap-2 text-error transition-all duration-300 hover:scale-105"
                       >
                         <span>🚪</span>
                         <span>Logout</span>
@@ -94,13 +94,13 @@ export function Navbar() {
               </div>
             ) : (
               <>
-                <Link href="/admin/login" className="hidden sm:inline-flex btn btn-primary btn-sm">
+                <Link href="/admin/login" className="hidden sm:inline-flex btn btn-primary btn-sm transition-all duration-300 hover:scale-105 hover:shadow-lg">
                   <span>🔐</span>
                   Login Admin
                 </Link>
                 <Link
                   href="/admin"
-                  className="hidden sm:inline-flex btn btn-outline btn-sm"
+                  className="hidden sm:inline-flex btn btn-outline btn-sm transition-all duration-300 hover:scale-105 hover:shadow-lg"
                 >
                   <span>🛠️</span>
                   Admin Panel
@@ -110,15 +110,15 @@ export function Navbar() {
 
             {/* Mobile Menu Toggle */}
             <button
-              className="lg:hidden btn btn-ghost btn-square btn-sm"
+              className="lg:hidden btn btn-ghost btn-square btn-sm transition-all duration-300 hover:scale-110 hover:rotate-90"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
@@ -128,22 +128,23 @@ export function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-base-200 py-4 space-y-2 animate-fadeIn">
-            {menuItems.map((item) => (
+          <div className="lg:hidden border-t border-base-200 py-4 space-y-2 animate-fadeInUp">
+            {menuItems.map((item, index) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="block px-4 py-2 rounded-lg text-sm font-medium text-base-content hover:bg-base-200 transition-colors"
+                className="block px-4 py-2 rounded-lg text-sm font-medium text-base-content hover:bg-base-200 transition-all duration-300 hover:translate-x-2 hover:scale-105"
                 onClick={() => setMobileMenuOpen(false)}
+                style={{ animationDelay: `${index * 0.05}s` }}
               >
                 {item.label}
               </Link>
             ))}
             
-            <div className="pt-2 border-t border-base-200 space-y-2">
+            <div className="pt-2 border-t border-base-200 space-y-2 animate-fadeIn animate-delay-300">
               {user ? (
                 <>
-                  <div className="px-4 py-2 bg-base-200 rounded-lg">
+                  <div className="px-4 py-2 bg-base-200 rounded-lg transition-all duration-300 hover:bg-base-300">
                     <p className="text-xs text-base-content/70">Logged in as</p>
                     <p className="text-sm font-semibold text-base-content truncate">
                       {user.email}
@@ -155,7 +156,7 @@ export function Navbar() {
                       setMobileMenuOpen(false);
                       window.location.href = "/";
                     }}
-                    className="w-full btn btn-ghost btn-sm justify-start"
+                    className="w-full btn btn-ghost btn-sm justify-start transition-all duration-300 hover:translate-x-2 hover:bg-error/10 hover:text-error"
                   >
                     🚪 Logout
                   </button>
@@ -163,7 +164,7 @@ export function Navbar() {
               ) : (
                 <Link
                   href="/admin/login"
-                  className="block px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-content text-center"
+                  className="block px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-content text-center transition-all duration-300 hover:scale-105 hover:shadow-lg"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   🔐 Login Admin
@@ -172,7 +173,7 @@ export function Navbar() {
               
               <Link
                 href="/admin"
-                className="block px-4 py-2 rounded-lg text-sm font-medium border border-base-300 text-center"
+                className="block px-4 py-2 rounded-lg text-sm font-medium border border-base-300 text-center transition-all duration-300 hover:scale-105 hover:bg-base-200 hover:shadow-md"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 🛠️ Admin Panel
