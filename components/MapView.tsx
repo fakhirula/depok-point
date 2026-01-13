@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import "leaflet/dist/leaflet.css";
-import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
 import { Place } from "@/types/place";
 
 const center: [number, number] = [-6.4025, 106.7942];
@@ -15,12 +13,21 @@ type Props = {
 
 export function MapView({ places, selectedId, onSelect }: Props) {
   const [isClient, setIsClient] = useState(false);
+  const [mapComponents, setMapComponents] = useState<any>(null);
 
   useEffect(() => {
     setIsClient(true);
+    
+    // Dynamically import Leaflet and react-leaflet only on client
+    Promise.all([
+      import("leaflet/dist/leaflet.css"),
+      import("react-leaflet"),
+    ]).then(([_, reactLeaflet]) => {
+      setMapComponents(reactLeaflet);
+    });
   }, []);
 
-  if (!isClient) {
+  if (!isClient || !mapComponents) {
     return (
       <div className="w-full h-[480px] overflow-hidden rounded-box border border-base-300 shadow-sm bg-base-200 flex items-center justify-center">
         <span className="loading loading-spinner loading-lg text-primary" />
@@ -28,8 +35,10 @@ export function MapView({ places, selectedId, onSelect }: Props) {
     );
   }
 
+  const { MapContainer, TileLayer, CircleMarker, Popup } = mapComponents;
+
   return (
-    <div className="w-full h-[480px] overflow-hidden rounded-box border border-base-300 shadow-sm">
+    <div className="w-full h-[480px] overflow-hidden rounded-box border border-base-300 shadow-sm relative z-0">
       <MapContainer
         key="map-container"
         center={center}

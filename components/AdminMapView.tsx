@@ -1,18 +1,8 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
-import L from "leaflet";
+import { useEffect, useState } from "react";
 import { Place } from "@/types/place";
-
-const defaultIcon = L.icon({
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
 
 interface LocationMarker {
   lat: number;
@@ -26,21 +16,60 @@ type Props = {
   onLocationSelect: (location: LocationMarker) => void;
 };
 
-function MapClickHandler({ onLocationSelect }: { onLocationSelect: (location: LocationMarker) => void }) {
-  useMapEvents({
-    click(e) {
-      onLocationSelect({
-        lat: e.latlng.lat,
-        lng: e.latlng.lng,
-        isNew: true,
-      });
-    },
-  });
-  return null;
-}
-
 export function AdminMapView({ places, selectedLocation, onLocationSelect }: Props) {
   const center: [number, number] = [-6.4025, 106.7942];
+  const [mapComponents, setMapComponents] = useState<any>(null);
+  const [L, setL] = useState<any>(null);
+
+  useEffect(() => {
+    const loadMapComponents = async () => {
+      const [leaflet, reactLeaflet] = await Promise.all([
+        import("leaflet"),
+        import("react-leaflet"),
+      ]);
+      
+      const defaultIcon = leaflet.default.icon({
+        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41],
+      });
+
+      const MapClickHandler = ({ onLocationSelect }: { onLocationSelect: (location: LocationMarker) => void }) => {
+        reactLeaflet.useMapEvents({
+          click(e: any) {
+            onLocationSelect({
+              lat: e.latlng.lat,
+              lng: e.latlng.lng,
+              isNew: true,
+            });
+          },
+        });
+        return null;
+      };
+
+      setMapComponents({
+        ...reactLeaflet,
+        defaultIcon,
+        MapClickHandler,
+      });
+      setL(leaflet.default);
+    };
+
+    loadMapComponents();
+  }, []);
+
+  if (!mapComponents) {
+    return (
+      <div className="flex h-[500px] items-center justify-center rounded-box border border-base-300 bg-base-100">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
+  }
+
+  const { MapContainer, TileLayer, Marker, Popup, defaultIcon, MapClickHandler } = mapComponents;
 
   return (
     <div className="space-y-3">

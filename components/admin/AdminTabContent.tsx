@@ -3,22 +3,20 @@
 import { FormEvent, useEffect, useState } from "react";
 import { addDoc, collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Place, PlaceCategory } from "@/types/place";
+import { Place } from "@/types/place";
 import dynamic from "next/dynamic";
 
 const AdminMapView = dynamic(() => import("@/components/AdminMapView").then((mod) => mod.AdminMapView), {
   ssr: false,
 });
 
-const defaultCategories: { value: PlaceCategory; label: string }[] = [
-  { value: "Rumah Sakit", label: "🏥 Rumah Sakit" },
-  { value: "Puskesmas", label: "🏥 Puskesmas" },
-  { value: "Kantor Polisi", label: "🚓 Kantor Polisi" },
-  { value: "Damkar", label: "🚒 Damkar (Dinas Kebakaran)" },
-  { value: "Kantor Pemerintahan", label: "🏛️ Kantor Pemerintahan" },
-  { value: "Transportasi", label: "🚌 Transportasi" },
-  { value: "Lainnya", label: "📍 Lainnya" },
-];
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  description?: string;
+}
 
 interface LocationMarker {
   lat: number;
@@ -27,7 +25,7 @@ interface LocationMarker {
 
 type FormState = {
   name: string;
-  category: PlaceCategory;
+  category: string;
   address: string;
   latitude: string;
   longitude: string;
@@ -38,6 +36,8 @@ type FormState = {
 
 export default function AdminTabContent() {
   const [places, setPlaces] = useState<Place[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState<LocationMarker | undefined>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +54,41 @@ export default function AdminTabContent() {
     imageFile: null,
   });
 
+  // Load categories from Firestore
+  useEffect(() => {
+    const categoriesRef = collection(db, "categories");
+    const q = query(categoriesRef, orderBy("name"));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const nextCategories: Category[] = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          name: doc.data().name || "",
+          icon: doc.data().icon || "📍",
+          color: doc.data().color || "#2563eb",
+          description: doc.data().description || "",
+        }));
+        setCategories(nextCategories);
+        setCategoriesLoading(false);
+
+        // Auto-set first category when kosong
+        if (nextCategories.length > 0) {
+          setForm((prev) => ({
+            ...prev,
+            category: prev.category || nextCategories[0].name,
+          }));
+        }
+      },
+      (err) => {
+        console.error("Error loading categories:", err);
+        setCategoriesLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
+
   useEffect(() => {
     const q = query(collection(db, "places"), orderBy("name"));
     const unsubscribe = onSnapshot(
@@ -64,7 +99,7 @@ export default function AdminTabContent() {
           return {
             id: doc.id,
             name: data.name || "Tanpa nama",
-            category: (data.category as PlaceCategory) || "Lainnya",
+            category: (data.category as string) || "Lainnya",
             address: data.address || "",
             phone: data.phone || "",
             description: data.description || "",
@@ -140,6 +175,7 @@ export default function AdminTabContent() {
       const longitude = Number(form.longitude);
 
       if (!form.name.trim()) throw new Error("Nama lokasi harus diisi");
+      if (!form.category) throw new Error("Kategori harus dipilih");
       if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
         throw new Error("Klik peta untuk mengatur koordinat");
       }
@@ -216,128 +252,114 @@ export default function AdminTabContent() {
                 <span>Lokasi Baru</span>
               </h2>
 
-              <form className="space-y-4" onSubmit={handleSubmit}>
-                {/* Name Input */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">Nama Lokasi *</span>
-                  </label>
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Nama Lokasi *</label>
+                    <input
+                      type="text"
+                      className="input input-bordered w-full"
+                      placeholder="Contoh: RSUD Depok"
+                      value={form.name}
+                      onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Kategori *</label>
+                    <select
+                      className="select select-bordered w-full"
+                      value={form.category}
+                      onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+                      disabled={categoriesLoading}
+                    >
+                      <option value="" disabled>
+                        {categoriesLoading ? "Memuat kategori..." : "Pilih kategori"}
+                      </option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.name}>
+                          {cat.icon} {cat.name}
+                        </option>
+                      ))}
+                      {categories.length === 0 && !categoriesLoading ? (
+                        <option value="Lainnya">Lainnya</option>
+                      ) : null}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Telepon</label>
                   <input
                     type="text"
-                    className="input input-bordered input-md"
-                    placeholder="Contoh: RSUD Depok"
-                    value={form.name}
-                    onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                    required
+                    className="input input-bordered w-full"
+                    placeholder="0857xxxx / +62 ..."
+                    value={form.phone}
+                    onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
                   />
                 </div>
 
-                {/* Category Select */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">Kategori *</span>
-                  </label>
-                  <select
-                    className="select select-bordered select-md"
-                    value={form.category}
-                    onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value as PlaceCategory }))}
-                  >
-                    {defaultCategories.map((cat) => (
-                      <option key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Address Textarea */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Alamat</span>
-                  </label>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Alamat</label>
                   <textarea
-                    className="textarea textarea-bordered textarea-sm h-20"
+                    className="textarea textarea-bordered h-24 w-full"
                     placeholder="Alamat lengkap lokasi..."
                     value={form.address}
                     onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
                   />
                 </div>
 
-                {/* Coordinates Section */}
-                <div className="divider my-3" />
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">Koordinat *</span>
-                    <span className="label-text-alt text-xs badge badge-outline">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold">Koordinat *</label>
+                    <span className="text-xs badge badge-outline">
                       {selectedLocation ? "✓ Set" : "⚠ Belum"}
                     </span>
-                  </label>
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="label">
-                        <span className="label-text text-xs">Latitude</span>
-                      </label>
+                    <div className="space-y-1">
+                      <label className="text-xs">Latitude</label>
                       <input
                         type="number"
                         step="0.000001"
-                        className="input input-bordered input-sm text-center font-mono"
+                        className="input input-bordered input-sm text-center font-mono w-full"
                         placeholder="Lat"
                         value={form.latitude}
                         readOnly
                       />
                     </div>
-                    <div>
-                      <label className="label">
-                        <span className="label-text text-xs">Longitude</span>
-                      </label>
+                    <div className="space-y-1">
+                      <label className="text-xs">Longitude</label>
                       <input
                         type="number"
                         step="0.000001"
-                        className="input input-bordered input-sm text-center font-mono"
+                        className="input input-bordered input-sm text-center font-mono w-full"
                         placeholder="Lng"
                         value={form.longitude}
                         readOnly
                       />
                     </div>
                   </div>
+                  <p className="text-xs text-base-content/60 mt-2">Klik peta untuk mengisi koordinat otomatis</p>
                 </div>
 
-                {/* Phone Input */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Telepon</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="input input-bordered input-sm"
-                    placeholder="+62 21 ..."
-                    value={form.phone}
-                    onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
-                  />
-                </div>
-
-                {/* Description Textarea */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Deskripsi</span>
-                  </label>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Deskripsi</label>
                   <textarea
-                    className="textarea textarea-bordered textarea-sm h-16"
+                    className="textarea textarea-bordered h-20 w-full"
                     placeholder="Deskripsi singkat tentang lokasi..."
                     value={form.description}
                     onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                   />
                 </div>
 
-                {/* Image Upload */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Foto (Opsional)</span>
-                  </label>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Foto (Opsional)</label>
                   <input
                     type="file"
                     accept="image/*"
-                    className="file-input file-input-bordered file-input-sm"
+                    className="file-input file-input-bordered file-input-sm w-full"
                     onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
                   />
                   {previewUrl && (
@@ -355,8 +377,6 @@ export default function AdminTabContent() {
                   )}
                 </div>
 
-                {/* Submit Section */}
-                <div className="divider my-3" />
                 <div className="space-y-2">
                   <button
                     type="submit"

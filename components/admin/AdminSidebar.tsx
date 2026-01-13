@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
-type AdminTab = "overview" | "add-location" | "manage-locations" | "categories";
+type AdminTab = "overview" | "add-location" | "manage-locations" | "categories" | "carousel";
 
 interface AdminSidebarProps {
   activeTab: AdminTab;
@@ -28,6 +28,7 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
     { id: "add-location", label: "Tambah Lokasi" },
     { id: "manage-locations", label: "Kelola Lokasi" },
     { id: "categories", label: "Manajemen Kategori" },
+    { id: "carousel", label: "Carousel Hero" },
   ] as const;
 
   const iconMap: Record<string, string> = {
@@ -35,6 +36,7 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
     "add-location": "➕",
     "manage-locations": "📍",
     categories: "📚",
+    carousel: "🎠",
   };
 
   const handleTabChange = (tab: AdminTab) => {
@@ -46,8 +48,15 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
     <>
       {/* Mobile Toggle */}
       <div className="sticky top-0 z-20 flex items-center justify-between bg-base-100 border-b border-base-200 p-4 lg:hidden">
-        <div>
-          <h1 className="text-xl font-bold">🛠️ Admin Panel</h1>
+        <div className="flex items-center gap-2">
+          <Image 
+            src="/logo.svg" 
+            alt="DepokPoint Logo" 
+            width={24} 
+            height={24}
+            className="w-6 h-6"
+          />
+          <h1 className="text-xl font-bold">Admin Panel</h1>
         </div>
         <button
           className="btn btn-square btn-ghost btn-sm"
@@ -65,9 +74,15 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
       >
         {/* Header */}
         <div className="sticky top-0 z-10 border-b border-base-200 bg-base-100 p-4">
-          <Link href="/" className="flex items-center justify-between gap-2 hover:no-underline">
-            <div>
-              <h2 className="text-lg font-bold">🛠️</h2>
+          <Link href="/" className="flex items-center gap-3 hover:no-underline">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-focus rounded-lg flex items-center justify-center shadow-md p-1.5">
+              <Image 
+                src="/logo.svg" 
+                alt="DepokPoint Logo" 
+                width={40} 
+                height={40}
+                className="w-full h-full"
+              />
             </div>
             <div>
               <p className="text-sm font-semibold">Admin Panel</p>

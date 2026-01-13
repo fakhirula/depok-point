@@ -1,26 +1,26 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { addDoc, collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Place, PlaceCategory } from "@/types/place";
+import { CarouselSlide } from "@/types/carousel";
 import { Navbar } from "@/components/Navbar";
+import { HeroCarousel } from "@/components/HeroCarousel";
 
 const MapView = dynamic(() => import("@/components/MapView").then((mod) => mod.MapView), {
   ssr: false,
 });
 
-const categories: { value: PlaceCategory | "all"; label: string }[] = [
-  { value: "all", label: "Semua Kategori" },
-  { value: "Rumah Sakit", label: "Rumah Sakit" },
-  { value: "Puskesmas", label: "Puskesmas" },
-  { value: "Kantor Polisi", label: "Kantor Polisi" },
-  { value: "Damkar", label: "Damkar" },
-  { value: "Kantor Pemerintahan", label: "Kantor Pemerintahan" },
-  { value: "Transportasi", label: "Transportasi" },
-  { value: "Lainnya", label: "Lainnya" },
-];
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  description?: string;
+}
 
 const defaultCenter = { lat: -6.4025, lng: 106.7942 };
 
@@ -43,10 +43,14 @@ function formatDate(value?: string) {
 
 export default function Home() {
   const [places, setPlaces] = useState<Place[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<PlaceCategory | "all">("all");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [carouselSlides, setCarouselSlides] = useState<CarouselSlide[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string>();
   const [loading, setLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [carouselLoading, setCarouselLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -61,6 +65,66 @@ export default function Home() {
     imageFile: null,
   });
 
+  // Load categories from Firestore
+  useEffect(() => {
+    const categoriesRef = collection(db, "categories");
+    const q = query(categoriesRef, orderBy("name"));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const nextCategories: Category[] = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          name: doc.data().name || "",
+          icon: doc.data().icon || "📍",
+          color: doc.data().color || "#2563eb",
+          description: doc.data().description || "",
+        }));
+        setCategories(nextCategories);
+        setCategoriesLoading(false);
+      },
+      (err) => {
+        console.error("Error loading categories:", err);
+        setCategoriesLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  // Load carousel slides from Firestore
+  useEffect(() => {
+    const carouselRef = collection(db, "carouselSlides");
+    const q = query(carouselRef, orderBy("order", "asc"));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const nextSlides: CarouselSlide[] = snapshot.docs
+          .map((doc) => ({
+            id: doc.id,
+            title: doc.data().title || "",
+            description: doc.data().description || "",
+            imageUrl: doc.data().imageUrl || "",
+            order: doc.data().order || 0,
+            isActive: doc.data().isActive !== false,
+            createdAt: doc.data().createdAt || new Date().toISOString(),
+            updatedAt: doc.data().updatedAt || new Date().toISOString(),
+          }))
+          .filter((slide) => slide.isActive);
+        setCarouselSlides(nextSlides);
+        setCarouselLoading(false);
+      },
+      (err) => {
+        console.error("Error loading carousel slides:", err);
+        setCarouselLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  // Load places from Firestore
   useEffect(() => {
     const placesRef = collection(db, "places");
     const q = query(placesRef, orderBy("name"));
@@ -115,10 +179,12 @@ export default function Home() {
     const total = places.length;
     const hospitalCount = places.filter((p) => p.category === "Rumah Sakit").length;
     const policeCount = places.filter((p) => p.category === "Kantor Polisi").length;
+    const damkarCount = places.filter((p) => p.category === "Damkar").length;
     return {
       total,
       hospitalCount,
       policeCount,
+      damkarCount,
       selectedCount: filteredPlaces.length,
     };
   }, [places, filteredPlaces.length]);
@@ -215,7 +281,16 @@ export default function Home() {
             <div className="grid gap-8 lg:grid-cols-2 items-center">
               <div className="space-y-6">
                 <div className="inline-block">
-                  <span className="badge badge-primary badge-lg">🗺️ Depok Point</span>
+                  <div className="flex items-center gap-2 badge badge-primary badge-lg">
+                    <Image 
+                      src="/logo.svg" 
+                      alt="DepokPoint Logo" 
+                      width={20} 
+                      height={20}
+                      className="w-5 h-5"
+                    />
+                    <span>Depok Point</span>
+                  </div>
                 </div>
                 <h1 className="text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
                   Sistem Informasi <span className="text-primary">GIS</span> Kota Depok
@@ -238,11 +313,7 @@ export default function Home() {
                 </div>
               </div>
               
-              <div className="w-full rounded-2xl bg-base-100 p-2 shadow-2xl border border-base-300">
-                <div className="aspect-video rounded-xl overflow-hidden">
-                  <MapView places={filteredPlaces} selectedId={selectedId} onSelect={setSelectedId} />
-                </div>
-              </div>
+              <HeroCarousel slides={carouselSlides} loading={carouselLoading} />
             </div>
           </div>
         </section>
@@ -286,311 +357,69 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-4">
-              <div className="card bg-base-100 shadow">
-                <div className="card-body gap-4">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-end">
-                    <div className="form-control w-full md:max-w-xs">
-                      <label className="label">
-                        <span className="label-text">Cari lokasi</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Rumah sakit, kantor polisi, dll"
-                        className="input input-bordered"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                      />
-                    </div>
-                    <div className="form-control w-full md:max-w-xs">
-                      <label className="label">
-                        <span className="label-text">Kategori</span>
-                      </label>
-                      <select
-                        className="select select-bordered"
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value as PlaceCategory | "all")}
+          <div className="card bg-base-100 shadow-lg border border-base-300">
+            <div className="card-body space-y-4">
+              <div className="grid gap-3 md:grid-cols-3 md:items-end">
+                <div className="form-control w-full">
+                  <label className="label">
+                    <span className="label-text">Cari lokasi</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Rumah sakit, kantor polisi, dll"
+                    className="input input-bordered"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+                <div className="form-control w-full">
+                  <label className="label">
+                    <span className="label-text">Kategori</span>
+                  </label>
+                  <select
+                    className="select select-bordered"
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    disabled={categoriesLoading}
                   >
+                    <option value="all">Semua Kategori</option>
                     {categories.map((category) => (
-                      <option key={category.value} value={category.value}>
-                        {category.label}
+                      <option key={category.id} value={category.name}>
+                        {category.icon} {category.name}
                       </option>
                     ))}
                   </select>
                 </div>
-                <div className="form-control w-full md:max-w-xs">
+                <div className="form-control w-full">
                   <label className="label">
-                    <span className="label-text">Urutan</span>
+                    <span className="label-text">Info</span>
                   </label>
-                  <input className="input input-bordered" value="Abjad (Firestore)" readOnly />
+                  <div className="input input-bordered bg-base-200 text-sm flex items-center">
+                    Klik marker di peta untuk lihat detail
+                  </div>
                 </div>
               </div>
+
               {error ? (
                 <div className="alert alert-error flex items-center gap-2 text-sm">
                   <span>{error}</span>
                 </div>
               ) : null}
-              <div className="grid gap-4 md:grid-cols-2">
-                {loading ? (
-                  <div className="col-span-2 flex items-center justify-center py-10">
-                    <span className="loading loading-spinner loading-lg text-primary" aria-label="Memuat" />
-                  </div>
-                ) : filteredPlaces.length === 0 ? (
-                  <div className="col-span-2 rounded-box border border-dashed border-base-300 p-6 text-center text-sm">
-                    Belum ada data untuk filter ini. Tambahkan lokasi baru di form sebelah kanan.
-                  </div>
-                ) : (
-                  filteredPlaces.map((place) => (
-                    <article key={place.id} className="card bg-base-100 shadow-sm border border-base-200">
-                      <div className="card-body gap-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <h3 className="card-title text-lg">{place.name}</h3>
-                            <div className="flex flex-wrap gap-2 text-sm text-base-content/70">
-                              <span className="badge badge-outline">{place.category}</span>
-                              <span className="badge badge-ghost">{formatDate(place.updatedAt)}</span>
-                            </div>
-                          </div>
-                          <button
-                            className="btn btn-sm btn-ghost"
-                            type="button"
-                            onClick={() => setSelectedId(place.id)}
-                          >
-                            Fokus
-                          </button>
-                        </div>
-                        {place.imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={place.imageUrl}
-                            alt={place.name}
-                            className="h-40 w-full rounded-box object-cover"
-                          />
-                        ) : null}
-                        {place.address ? <p className="text-sm text-base-content/80">{place.address}</p> : null}
-                        <div className="grid grid-cols-2 gap-2 text-sm text-base-content/80">
-                          <span>Lat: {place.latitude.toFixed(4)}</span>
-                          <span>Lng: {place.longitude.toFixed(4)}</span>
-                          {place.phone ? <span className="col-span-2">Telp: {place.phone}</span> : null}
-                        </div>
-                        {place.description ? (
-                          <p className="text-sm text-base-content/70">{place.description}</p>
-                        ) : null}
-                      </div>
-                    </article>
-                  ))
-                )}
-              </div>
+
+              {loading ? (
+                <div className="flex items-center justify-center py-10">
+                  <span className="loading loading-spinner loading-lg text-primary" aria-label="Memuat" />
+                </div>
+              ) : filteredPlaces.length === 0 ? (
+                <div className="rounded-box border border-dashed border-base-300 p-6 text-center text-sm">
+                  Belum ada data untuk filter ini. Tambahkan lokasi baru di admin.
+                </div>
+              ) : (
+                <MapView places={filteredPlaces} selectedId={selectedId} onSelect={setSelectedId} />
+              )}
             </div>
           </div>
-        </div>
-
-        <div className="lg:col-span-1">
-          <div className="card bg-base-100 shadow-xl border border-base-300 sticky top-4">
-            <div className="card-body">
-              <div className="mb-4">
-                <h2 className="card-title text-xl mb-2">➕ Tambah Lokasi Baru</h2>
-                <p className="text-sm text-base-content/60">
-                  Lengkapi form di bawah untuk menambahkan lokasi baru ke sistem
-                </p>
-              </div>
-
-              <form className="space-y-4" onSubmit={handleSubmit}>
-                {/* Nama Lokasi */}
-                <div className="space-y-2">
-                  <label htmlFor="name" className="block text-sm font-semibold text-base-content">
-                    📍 Nama Lokasi
-                  </label>
-                  <input
-                    id="name"
-                    type="text"
-                    className="w-full px-4 py-2.5 bg-base-200 border-2 border-base-300 rounded-lg text-base-content placeholder-base-content/50 transition-all duration-200 focus:outline-none focus:border-primary focus:bg-base-100"
-                    placeholder="Contoh: RSUD Kota Depok"
-                    value={form.name}
-                    onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                    required
-                  />
-                </div>
-
-                {/* Kategori */}
-                <div className="space-y-2">
-                  <label htmlFor="category" className="block text-sm font-semibold text-base-content">
-                    📚 Kategori
-                  </label>
-                  <select
-                    id="category"
-                    className="w-full px-4 py-2.5 bg-base-200 border-2 border-base-300 rounded-lg text-base-content transition-all duration-200 focus:outline-none focus:border-primary focus:bg-base-100"
-                    value={form.category}
-                    onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value as PlaceCategory }))}
-                  >
-                    {categories
-                      .filter((c) => c.value !== "all")
-                      .map((category) => (
-                        <option key={category.value} value={category.value}>
-                          {category.label}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                {/* Alamat */}
-                <div className="space-y-2">
-                  <label htmlFor="address" className="block text-sm font-semibold text-base-content">
-                    📮 Alamat Lengkap
-                  </label>
-                  <textarea
-                    id="address"
-                    className="w-full px-4 py-2.5 bg-base-200 border-2 border-base-300 rounded-lg text-base-content placeholder-base-content/50 transition-all duration-200 focus:outline-none focus:border-primary focus:bg-base-100 min-h-[80px] resize-none"
-                    placeholder="Jl. Margonda Raya No. 123, Depok"
-                    value={form.address}
-                    onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
-                  />
-                </div>
-
-                {/* Koordinat */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-base-content">
-                    🗺️ Koordinat Lokasi
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label htmlFor="latitude" className="block text-xs text-base-content/70">
-                        Latitude
-                      </label>
-                      <input
-                        id="latitude"
-                        type="number"
-                        step="0.0001"
-                        className="w-full px-3 py-2 bg-base-200 border-2 border-base-300 rounded-lg text-sm text-base-content transition-all duration-200 focus:outline-none focus:border-primary focus:bg-base-100"
-                        placeholder="-6.4025"
-                        value={form.latitude}
-                        onChange={(e) => setForm((prev) => ({ ...prev, latitude: e.target.value }))}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label htmlFor="longitude" className="block text-xs text-base-content/70">
-                        Longitude
-                      </label>
-                      <input
-                        id="longitude"
-                        type="number"
-                        step="0.0001"
-                        className="w-full px-3 py-2 bg-base-200 border-2 border-base-300 rounded-lg text-sm text-base-content transition-all duration-200 focus:outline-none focus:border-primary focus:bg-base-100"
-                        placeholder="106.7942"
-                        value={form.longitude}
-                        onChange={(e) => setForm((prev) => ({ ...prev, longitude: e.target.value }))}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <p className="text-xs text-base-content/50 mt-1">
-                    💡 Tip: Klik pada peta untuk mendapatkan koordinat otomatis
-                  </p>
-                </div>
-
-                {/* Divider */}
-                <div className="divider my-4">Informasi Tambahan (Opsional)</div>
-
-                {/* Telepon */}
-                <div className="space-y-2">
-                  <label htmlFor="phone" className="block text-sm font-semibold text-base-content">
-                    📞 Nomor Telepon
-                  </label>
-                  <input
-                    id="phone"
-                    type="text"
-                    className="w-full px-4 py-2.5 bg-base-200 border-2 border-base-300 rounded-lg text-base-content placeholder-base-content/50 transition-all duration-200 focus:outline-none focus:border-primary focus:bg-base-100"
-                    placeholder="021-12345678"
-                    value={form.phone}
-                    onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
-                  />
-                </div>
-
-                {/* Deskripsi */}
-                <div className="space-y-2">
-                  <label htmlFor="description" className="block text-sm font-semibold text-base-content">
-                    📝 Deskripsi
-                  </label>
-                  <textarea
-                    id="description"
-                    className="w-full px-4 py-2.5 bg-base-200 border-2 border-base-300 rounded-lg text-base-content placeholder-base-content/50 transition-all duration-200 focus:outline-none focus:border-primary focus:bg-base-100 min-h-[80px] resize-none"
-                    placeholder="Informasi tambahan tentang lokasi ini..."
-                    value={form.description}
-                    onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                  />
-                </div>
-
-                {/* Upload Foto */}
-                <div className="space-y-2">
-                  <label htmlFor="image" className="block text-sm font-semibold text-base-content">
-                    📷 Foto Lokasi
-                  </label>
-                  <input
-                    id="image"
-                    type="file"
-                    accept="image/*"
-                    className="file-input file-input-bordered w-full"
-                    onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-                  />
-                  {previewUrl && (
-                    <div className="mt-3 relative rounded-lg overflow-hidden border-2 border-base-300">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img 
-                        src={previewUrl} 
-                        alt="Pratinjau" 
-                        className="w-full h-48 object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleFileChange(null);
-                          const fileInput = document.getElementById('image') as HTMLInputElement;
-                          if (fileInput) fileInput.value = '';
-                        }}
-                        className="absolute top-2 right-2 btn btn-circle btn-sm btn-error"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Submit Button */}
-                <button 
-                  className="w-full px-4 py-3 bg-primary text-primary-content font-semibold rounded-lg transition-all duration-200 hover:shadow-lg active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
-                  type="submit" 
-                  disabled={submitting}
-                >
-                  {submitting ? (
-                    <>
-                      <span className="loading loading-spinner loading-sm" />
-                      Menyimpan Data...
-                    </>
-                  ) : (
-                    <>
-                      <span>💾</span>
-                      Simpan Lokasi Baru
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {/* Info Box */}
-              <div className="mt-4 bg-info/10 border border-info/20 rounded-lg p-3">
-                <p className="text-xs text-info font-semibold mb-1">ℹ️ Informasi</p>
-                <ul className="text-xs text-base-content/70 space-y-1">
-                  <li>• Data akan disimpan ke Firebase Firestore</li>
-                  <li>• Foto akan diupload ke Cloudinary</li>
-                  <li>• Field bertanda * wajib diisi</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+        </section>
 
       {/* News Section */}
       <section id="news" className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
@@ -737,65 +566,66 @@ export default function Home() {
             Ada pertanyaan atau ingin menambahkan data lokasi? Silakan hubungi kami
           </p>
         </div>
-        
-        <div className="grid gap-8 lg:grid-cols-3 max-w-5xl mx-auto">
-          <div className="card bg-base-100 shadow-xl border border-base-300">
-            <div className="card-body items-center text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <span className="text-3xl">📧</span>
+
+        <div className="grid gap-8 lg:grid-cols-2 lg:items-start max-w-6xl mx-auto">
+          {/* Kolom 1: Alamat */}
+          <div className="bg-base-100 border border-base-300 rounded-2xl p-6 h-full">
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-2xl">📍</span>
               </div>
-              <h3 className="card-title text-lg">Email</h3>
-              <p className="text-base-content/70">info@depokpoint.id</p>
-              <p className="text-base-content/70">admin@depokpoint.id</p>
+              <div className="flex-1 space-y-2">
+                <h3 className="font-bold text-lg">Alamat Kantor</h3>
+                <p className="text-base-content/70">
+                  <strong>Dinas Komunikasi dan Informatika Kota Depok</strong>
+                </p>
+                <p className="text-base-content/70">
+                  Jl. Margonda Raya No. 54 Gedung Dibaleka 2 Depok Lt.7
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="card bg-base-100 shadow-xl border border-base-300">
-            <div className="card-body items-center text-center">
-              <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mb-4">
-                <span className="text-3xl">📱</span>
+          {/* Kolom 2: Kontak 2x2 (tanpa card) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-4 rounded-lg border border-base-300 bg-base-100 flex flex-col items-start">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">🚨</span>
+                <span className="font-semibold">Call Center</span>
               </div>
-              <h3 className="card-title text-lg">Telepon</h3>
-              <p className="text-base-content/70">+62 21 1234 5678</p>
-              <p className="text-base-content/70">+62 812 3456 7890</p>
+              <a href="tel:112" className="text-2xl font-bold text-primary hover:text-primary-focus">
+                112
+              </a>
             </div>
-          </div>
 
-          <div className="card bg-base-100 shadow-xl border border-base-300">
-            <div className="card-body items-center text-center">
-              <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-4">
-                <span className="text-3xl">📍</span>
+            <div className="p-4 rounded-lg border border-base-300 bg-base-100 flex flex-col items-start">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">📧</span>
+                <span className="font-semibold">Email</span>
               </div>
-              <h3 className="card-title text-lg">Alamat</h3>
-              <p className="text-base-content/70">Jl. Margonda Raya</p>
-              <p className="text-base-content/70">Depok, Jawa Barat</p>
+              <a href="mailto:portal@depok.go.id" className="text-base-content/80 hover:text-primary">
+                portal@depok.go.id
+              </a>
             </div>
-          </div>
-        </div>
 
-        <div className="mt-12 max-w-2xl mx-auto">
-          <div className="card bg-base-100 shadow-xl border border-base-300">
-            <div className="card-body">
-              <h3 className="card-title mb-4">Kirim Pesan</h3>
-              <form className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="form-control">
-                    <input type="text" placeholder="Nama Anda" className="input input-bordered" />
-                  </div>
-                  <div className="form-control">
-                    <input type="email" placeholder="Email Anda" className="input input-bordered" />
-                  </div>
-                </div>
-                <div className="form-control">
-                  <input type="text" placeholder="Subjek" className="input input-bordered" />
-                </div>
-                <div className="form-control">
-                  <textarea className="textarea textarea-bordered h-32" placeholder="Pesan Anda"></textarea>
-                </div>
-                <button type="submit" className="btn btn-primary w-full">
-                  Kirim Pesan
-                </button>
-              </form>
+            <div className="p-4 rounded-lg border border-base-300 bg-base-100 flex flex-col items-start">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">📱</span>
+                <span className="font-semibold">Telepon</span>
+              </div>
+              <a href="tel:08111232222" className="text-base-content/80 hover:text-primary">
+                08111232222
+              </a>
+            </div>
+
+            <div className="p-4 rounded-lg border border-base-300 bg-base-100 flex flex-col items-start">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">💬</span>
+                <span className="font-semibold">SMS</span>
+              </div>
+              <a href="sms:08111631500" className="text-base-content/80 hover:text-primary">
+                08111631500
+              </a>
             </div>
           </div>
         </div>
@@ -807,16 +637,25 @@ export default function Home() {
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">🗺️</span>
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-focus rounded-lg flex items-center justify-center p-1.5">
+                  <Image 
+                    src="/logo.svg" 
+                    alt="DepokPoint Logo" 
+                    width={40} 
+                    height={40}
+                    className="w-full h-full"
+                  />
                 </div>
                 <div>
                   <h3 className="font-bold text-lg">Depok Point</h3>
                   <p className="text-xs text-base-content/60">GIS System</p>
                 </div>
               </div>
-              <p className="text-sm text-base-content/70">
+              <p className="text-sm text-base-content/70 mb-3">
                 Sistem informasi geografis untuk layanan publik Kota Depok
+              </p>
+              <p className="text-xs text-base-content/60">
+                Dikelola oleh: <strong>Dinas Komunikasi dan Informatika Kota Depok</strong>
               </p>
             </div>
             
@@ -831,26 +670,43 @@ export default function Home() {
             </div>
             
             <div>
-              <h4 className="font-bold mb-4">Kategori</h4>
+              <h4 className="font-bold mb-4">Kontak Resmi</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="link link-hover">Rumah Sakit</a></li>
-                <li><a href="#" className="link link-hover">Kantor Polisi</a></li>
-                <li><a href="#" className="link link-hover">Puskesmas</a></li>
-                <li><a href="#" className="link link-hover">Damkar</a></li>
+                <li className="flex items-center gap-2">
+                  <span>📧</span>
+                  <a href="mailto:portal@depok.go.id" className="link link-hover">portal@depok.go.id</a>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>📱</span>
+                  <a href="tel:08111232222" className="link link-hover">08111232222</a>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>💬</span>
+                  <a href="sms:08111631500" className="link link-hover">08111631500</a>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>🚨</span>
+                  <a href="tel:112" className="link link-hover font-bold">Call Center: 112</a>
+                </li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-bold mb-4">Ikuti Kami</h4>
-              <div className="flex gap-2">
-                <a href="#" className="btn btn-square btn-sm">
+              <h4 className="font-bold mb-4">Alamat</h4>
+              <p className="text-sm text-base-content/70">
+                Jl. Margonda Raya No. 54<br />
+                Gedung Dibaleka 2 Depok Lt.7<br />
+                Kota Depok, Jawa Barat
+              </p>
+              <div className="flex gap-2 mt-4">
+                <a href="https://depok.go.id" target="_blank" rel="noopener noreferrer" className="btn btn-square btn-sm" title="Website Resmi">
+                  <span>🌐</span>
+                </a>
+                <a href="#" className="btn btn-square btn-sm" title="Facebook">
                   <span>📘</span>
                 </a>
-                <a href="#" className="btn btn-square btn-sm">
+                <a href="#" className="btn btn-square btn-sm" title="Instagram">
                   <span>📷</span>
-                </a>
-                <a href="#" className="btn btn-square btn-sm">
-                  <span>🐦</span>
                 </a>
               </div>
             </div>
@@ -858,7 +714,8 @@ export default function Home() {
           
           <div className="border-t border-base-content/10 pt-8 text-center">
             <p className="text-sm text-base-content/60">
-              © 2026 Depok Point. All rights reserved. Built with Next.js & Firebase.
+              © 2026 Pemerintah Kota Depok. Dinas Komunikasi dan Informatika.<br />
+              <span className="text-xs">Built with Next.js, Firebase & OpenStreetMap</span>
             </p>
           </div>
         </div>

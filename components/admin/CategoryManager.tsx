@@ -48,27 +48,38 @@ export function CategoryManager() {
 
   // Load categories from Firestore
   useEffect(() => {
-    const q = query(collection(db, "categories"));
+    try {
+      const q = query(collection(db, "categories"));
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const nextCategories: Category[] = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        } as Category));
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const nextCategories: Category[] = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            name: doc.data().name || "",
+            icon: doc.data().icon || "📍",
+            color: doc.data().color || "#2563eb",
+            description: doc.data().description || "",
+            createdAt: doc.data().createdAt || new Date().toISOString(),
+          }));
 
-        setCategories(nextCategories);
-        setLoading(false);
-      },
-      (err) => {
-        console.error("Error loading categories:", err);
-        setError("Gagal memuat kategori");
-        setLoading(false);
-      },
-    );
+          setCategories(nextCategories);
+          setLoading(false);
+          setError(null);
+        },
+        (err) => {
+          console.error("Error loading categories:", err);
+          setError("Gagal memuat kategori. Pastikan Firestore sudah terkonfigurasi dengan benar.");
+          setLoading(false);
+        },
+      );
 
-    return () => unsubscribe();
+      return () => unsubscribe();
+    } catch (err) {
+      console.error("Error setting up listener:", err);
+      setError("Gagal setup listener kategori");
+      setLoading(false);
+    }
   }, []);
 
   const resetForm = () => {
@@ -158,11 +169,18 @@ export function CategoryManager() {
       </div>
 
       {error && (
-        <div className="alert alert-error">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l-2-2m0 0l-2-2m2 2l2-2m-2 2l-2 2m8-8a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span>{error}</span>
+        <div className="alert alert-error flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l-2-2m0 0l-2-2m2 2l2-2m-2 2l-2 2m8-8a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-semibold">{error}</span>
+          </div>
+          <div className="text-sm text-error/80">
+            <p>• Pastikan Firestore sudah diaktifkan di Firebase Console</p>
+            <p>• Check Firestore Rules: Allow read/write untuk authenticated users</p>
+            <p>• Refresh halaman dan coba lagi</p>
+          </div>
         </div>
       )}
 
@@ -176,15 +194,12 @@ export function CategoryManager() {
             </h3>
 
             <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Nama Kategori */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">Nama Kategori *</span>
-                  </label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Nama Kategori *</label>
                   <input
                     type="text"
-                    className="input input-bordered input-md"
+                    className="input input-bordered w-full"
                     placeholder="Contoh: Bandara, Stasiun"
                     value={form.name}
                     onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
@@ -193,15 +208,12 @@ export function CategoryManager() {
                   />
                 </div>
 
-                {/* Deskripsi */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Deskripsi</span>
-                  </label>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Deskripsi</label>
                   <input
                     type="text"
-                    className="input input-bordered input-md"
-                    placeholder="Deskripsi singkat"
+                    className="input input-bordered w-full"
+                    placeholder="Deskripsi singkat kategori"
                     value={form.description}
                     onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                     disabled={submitting}
@@ -209,38 +221,34 @@ export function CategoryManager() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Icon Selection */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">Emoji Icon</span>
-                  </label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Icon Emoji *</label>
                   <select
-                    className="select select-bordered select-md text-lg"
+                    className="select select-bordered w-full"
                     value={form.icon}
                     onChange={(e) => setForm((prev) => ({ ...prev, icon: e.target.value }))}
                     disabled={submitting}
                   >
                     {defaultIcons.map((icon) => (
                       <option key={icon} value={icon}>
-                        {icon} {icon === form.icon ? "(Dipilih)" : ""}
+                        {icon} {icon === form.icon ? "← Terpilih" : ""}
                       </option>
                     ))}
                   </select>
+                  <p className="text-xs text-base-content/60">Emoji sebagai icon kategori</p>
                 </div>
 
-                {/* Color Selection */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">Warna Marker</span>
-                  </label>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Warna Marker *</label>
                   <div className="flex gap-2 items-center">
                     <div
-                      className="w-16 h-16 rounded-lg border-2 border-base-300"
+                      className="w-10 h-10 rounded-lg border-2 border-base-300 shadow-sm flex-shrink-0"
                       style={{ backgroundColor: form.color }}
+                      title="Preview warna"
                     />
                     <select
-                      className="select select-bordered select-md flex-1"
+                      className="select select-bordered flex-1"
                       value={form.color}
                       onChange={(e) => setForm((prev) => ({ ...prev, color: e.target.value }))}
                       disabled={submitting}
@@ -252,12 +260,11 @@ export function CategoryManager() {
                       ))}
                     </select>
                   </div>
+                  <p className="text-xs text-base-content/60">Warna marker di peta</p>
                 </div>
               </div>
 
-              <div className="divider my-2" />
-
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
                   className="btn btn-primary flex-1"

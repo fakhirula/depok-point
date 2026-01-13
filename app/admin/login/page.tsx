@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/lib/auth-context";
 
 export default function AdminLoginPage() {
@@ -56,8 +57,14 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-block p-4 bg-gradient-to-br from-primary to-primary-focus rounded-2xl mb-4 shadow-lg">
-            <span className="text-5xl block">🛠️</span>
+          <div className="inline-flex items-center justify-center w-20 h-20 p-4 bg-gradient-to-br from-primary to-primary-focus rounded-2xl mb-4 shadow-lg">
+            <Image 
+              src="/logo.svg" 
+              alt="DepokPoint Logo" 
+              width={80} 
+              height={80}
+              className="w-full h-full"
+            />
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary-focus bg-clip-text text-transparent">
             Admin Panel
