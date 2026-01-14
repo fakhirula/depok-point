@@ -101,6 +101,11 @@ export function useLeafletRouting(
           return;
         }
 
+        // Check if points are still valid
+        if (!startPoint || !endPoint) {
+          return;
+        }
+
         // Remove existing control
         if (routingControlRef.current) {
           try {
