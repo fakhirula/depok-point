@@ -48,6 +48,10 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string>();
+  const [viewMode, setViewMode] = useState<'detail' | 'direction' | null>(null);
+  const [startPoint, setStartPoint] = useState<{ lat: number; lng: number; name?: string } | null>(null);
+  const [endPoint, setEndPoint] = useState<{ lat: number; lng: number; name?: string } | null>(null);
+  const [routeInfo, setRouteInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [carouselLoading, setCarouselLoading] = useState(true);
@@ -64,6 +68,11 @@ export default function Home() {
     description: "",
     imageFile: null,
   });
+
+  // Reset view mode when selection changes
+  useEffect(() => {
+    setViewMode(null);
+  }, [selectedId]);
 
   // Load categories from Firestore
   useEffect(() => {
@@ -500,7 +509,15 @@ export default function Home() {
                     Belum ada data untuk filter ini. Tambahkan lokasi baru di admin.
                   </div>
                 ) : (
-                  <MapView places={filteredPlaces} selectedId={selectedId} onSelect={setSelectedId} />
+                  <MapView 
+                    places={filteredPlaces} 
+                    selectedId={selectedId} 
+                    onSelect={setSelectedId} 
+                    showDirections={true}
+                    startPoint={startPoint}
+                    endPoint={endPoint}
+                    onRouteCalculated={setRouteInfo}
+                  />
                 )}
               </div>
             </div>
@@ -514,7 +531,44 @@ export default function Home() {
                   (() => {
                     const place = filteredPlaces.find(p => p.id === selectedId)!;
                     return (
-                      <form className="space-y-5">
+                      <div className="space-y-4">
+                        {/* Mode Selection */}
+                        {!viewMode && (
+                          <div className="flex flex-col gap-3">
+                            <p className="text-sm font-semibold text-center">Pilih aksi untuk lokasi ini:</p>
+                            <div className="grid grid-cols-2 gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setViewMode('detail')}
+                                className="btn btn-outline btn-primary"
+                              >
+                                📋 Lihat Detail
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setViewMode('direction')}
+                                className="btn btn-outline btn-success"
+                              >
+                                🧭 Set Arah Jalan
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Back Button */}
+                        {viewMode && (
+                          <button
+                            type="button"
+                            onClick={() => setViewMode(null)}
+                            className="btn btn-sm btn-ghost gap-2"
+                          >
+                            ← Kembali
+                          </button>
+                        )}
+
+                        {/* Detail Form */}
+                        {viewMode === 'detail' && (
+                          <form className="space-y-5">
                         {/* Row 1: Nama Lokasi & Kategori */}
                         <div className="grid grid-cols-2 gap-3">
                           <div className="form-control w-full">
@@ -610,11 +664,63 @@ export default function Home() {
                           </div>
                         )}
 
-                        {/* Row 5: Updated Info */}
-                        <div className="text-xs text-base-content/60 pt-2 border-t border-base-300">
-                          Diperbarui: {place.updatedAt ? formatDate(place.updatedAt) : "Belum pernah diperbarui"}
-                        </div>
-                      </form>
+                            {/* Row 5: Updated Info */}
+                            <div className="text-xs text-base-content/60 pt-2 border-t border-base-300">
+                              Diperbarui: {place.updatedAt ? formatDate(place.updatedAt) : "Belum pernah diperbarui"}
+                            </div>
+                          </form>
+                        )}
+
+                        {/* Direction Section */}
+                        {viewMode === 'direction' && (
+                          <div className="space-y-2">
+                            <p className="text-sm font-semibold text-base-content/70">🧭 Arah Jalan</p>
+                            <p className="text-xs text-base-content/60 mb-3">Lokasi: <strong>{place.name}</strong></p>
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setStartPoint({ lat: place.latitude, lng: place.longitude, name: place.name })}
+                                className={`btn btn-sm ${startPoint?.lat === place.latitude && startPoint?.lng === place.longitude ? 'btn-primary' : 'btn-outline'}`}
+                              >
+                                {startPoint?.lat === place.latitude && startPoint?.lng === place.longitude ? '✓ Mulai' : 'Set Mulai'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEndPoint({ lat: place.latitude, lng: place.longitude, name: place.name })}
+                                className={`btn btn-sm ${endPoint?.lat === place.latitude && endPoint?.lng === place.longitude ? 'btn-success' : 'btn-outline'}`}
+                              >
+                                {endPoint?.lat === place.latitude && endPoint?.lng === place.longitude ? '✓ Tujuan' : 'Set Tujuan'}
+                              </button>
+                            </div>
+                            {(startPoint || endPoint) && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setStartPoint(null);
+                                  setEndPoint(null);
+                                  setRouteInfo(null);
+                                }}
+                                className="btn btn-xs btn-ghost w-full"
+                              >
+                                Reset Arah
+                              </button>
+                            )}
+
+                            {/* Route Info */}
+                            {routeInfo && startPoint && endPoint && (
+                              <div className="p-3 bg-info/10 border border-info/30 rounded-box space-y-2 mt-4">
+                                <p className="text-xs font-semibold text-info">📍 Rute Aktif</p>
+                                <div className="text-xs text-info space-y-1">
+                                  <p><strong>Dari:</strong> {startPoint.name}</p>
+                                  <p><strong>Ke:</strong> {endPoint.name}</p>
+                                  <p><strong>Jarak:</strong> {(routeInfo.distance / 1000).toFixed(2)} km</p>
+                                  <p><strong>Durasi:</strong> {Math.round(routeInfo.duration / 60)} menit</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     );
                   })()
                 ) : (
@@ -622,7 +728,7 @@ export default function Home() {
                     <div>
                       <p className="text-lg font-semibold mb-2">👈 Klik Marker di Peta</p>
                       <p className="text-sm text-base-content/60">
-                        Pilih lokasi di peta untuk melihat informasi detail
+                        Pilih lokasi di peta untuk lihat detail atau set arah jalan
                       </p>
                     </div>
                   </div>
